@@ -47,7 +47,7 @@ Para reproducir los análisis, se requiere el siguiente software:
 ## 👤 Autor y Contacto
 
 **M.Sc. Esteban Navarro-Díaz**
-* Instituto WEM / Universidad Santa Paula
+* Instituto WEM / Universidad de Costa Rica
 * Costa Rica
 * Email: estebanalfonso.navarro@ucr.ac.cr
 
