@@ -1,0 +1,1054 @@
+---
+title: "PCAmix"
+author: "Esteban Navarro"
+date: "2025-12-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Librerías
+
+```{r, warning= FALSE, message=FALSE}
+library(tidyverse)
+library(lsr)
+library(PCAmixdata)
+library(tidyverse)
+source("../funciones/leer_df_filtrado.R")
+```
+
+# Carga de los data sets
+
+```{r}
+df_filtrado <- leer_df_final("../data/df_filtrado.csv")
+```
+
+```{r}
+dim(df_filtrado)
+```
+
+```{r}
+library(dplyr)
+
+df_filtrado <- df_filtrado %>%
+  rename(
+    `Plan de autolesión`                  = plan_autolesion,
+    `Episodio de autolesión física`       = autolesion_fisica,
+    `Intento de autolesión`               = intento_autolesion,
+    `Sentirse sin propósito`              = sin_proposito,
+    `Incapacidad para solucionar`         = incapaz_solucionar,
+    `Conflicto familiar`                  = conflicto_familiar,
+    `Sin motivación`                      = sin_motivacion,
+    `Soledad`                             = soledad,
+    `Conducción temeraria`                = conduccion_temeraria,
+    `Dificultad para reconocer logros`    = no_reconocer_logros,
+    `Preocupación`                        = preocupado,
+    `Tendencia a ocultar emociones`       = ocultar_emociones,
+    `Descontrol del enojo`                = descontrol_enojo,
+    `Elevada exigencia académica laboral` = exigencia_academica_laboral,
+    `Dificultades económicas`             = dificultad_economica,
+    `Ruptura reciente`                    = ruptura_reciente,
+    `Maltrato emocional en la infancia`   = maltrato_emocional,
+    `Guardarse sentimientos`              = guarda_sentimientos,
+    `Dificultad para pedir ayuda`         = dificultad_pedir_ayuda,
+    `Estado civil`                        = estado_civil,
+    `Crisis de pareja actual`             = crisis_pareja_actual,
+    `Descontrol de drogas`                = descontrol_drogas,
+    `Abuso de alcohol`                    = abuso_alcohol,
+    `Edad`                                = edad,
+    `Consumo de medicamento psiquiátrico` = medicamento_psiquiatrico,
+    `Escolaridad`                         = escolaridad,
+    `Tiene medidas cautelares`            = medidas_cautelares,
+    `Ocupación`                           = ocupacion,
+    `Suicidio de un familiar`             = suicidio_familiar,
+    `Escala de ideación suicida (EIS)`    = EIS_Roberts
+  )
+
+names(df_filtrado)
+
+```
+
+```{r}
+str(df_filtrado)
+```
+
+
+# PCAmix
+
+```{r}
+library(dplyr)
+
+# ==========================
+# 1) Cuantitativas (numéricas)
+# ==========================
+CUAN <- df_filtrado %>%
+  select(
+    `Edad`,
+    `Escala de ideación suicida (EIS)`,
+    `Maltrato emocional en la infancia`,
+    `Tendencia a ocultar emociones`,
+    `Dificultad para pedir ayuda`,
+    `Guardarse sentimientos`,
+    `Sin motivación`,
+    `Preocupación`,
+    `Sentirse sin propósito`,
+    `Dificultad para reconocer logros`,
+    `Incapacidad para solucionar`,
+    `Intento de autolesión`,
+    `Plan de autolesión`,
+    `Episodio de autolesión física`,
+    `Conducción temeraria`,
+    `Soledad`,
+    `Conflicto familiar`,
+    `Dificultades económicas`,
+    `Elevada exigencia académica laboral`,
+    `Descontrol de drogas`,
+    `Abuso de alcohol`,
+    `Descontrol del enojo`
+  ) %>%
+  as.data.frame()
+
+# ==========================
+# 2) Cualitativas (factores)
+# ==========================
+CUAL <- df_filtrado %>%
+  select(
+    `Consumo de medicamento psiquiátrico`,
+    `Suicidio de un familiar`,
+    `Ruptura reciente`,
+    `Crisis de pareja actual`,
+    `Tiene medidas cautelares`,
+    `Escolaridad`,
+    `Estado civil`,
+    `Ocupación`
+  ) %>%
+  mutate(across(everything(), as.factor)) %>%
+  as.data.frame()
+
+```
+
+```{r}
+res.pcamix <- PCAmix(X.quanti = CUAN, X.quali = CUAL, rename.level = TRUE, graph = FALSE)
+```
+
+# Resultados
+
+```{r}
+print(res.pcamix$eig)
+```
+
+
+```{r, fig.width=26, fig.height=26}
+# 5. Gráfico de Squared Loadings (El más importante para ver qué pesa más)
+plot(res.pcamix, choice = "sqload", coloring.var = TRUE, leg = TRUE,
+     posleg = "topright", main = "Importancia de Variables (Cuanti + Cuali)")
+```
+
+# Cargas factoriales
+
+Se toman las cargas factoriales para realizar la selección de variables.
+
+```{r}
+sq_loadings <- res.pcamix$sqload
+
+# Ordenar las filas de forma descendente basándose en la primera columna (Dim 1)
+sq_loadings_ordenados <- sq_loadings[order(sq_loadings[, 1], decreasing = TRUE), ]
+
+# Visualizar los primeros resultados
+sq_loadings_ordenados
+```
+
+Se utiliza el método del codo sobre los autovalores para definir la cantidad de dimensiones.
+
+
+```{r, fig.width=13, fig.height=10}
+# Visualizar el codo de las dimensiones del PCAmix
+# Esto grafica los Eigenvalues (valores propios)
+plot(res.pcamix$eig[, 1], type = "b", 
+     main = "Método del Codo - Dimensiones PCAmix",
+     xlab = "Número de Dimensiones", 
+     ylab = "Autovalores (Eigenvalues)",
+     col = "blue", pch = 19)
+
+# Línea de referencia (Criterio de Kaiser: autovalores > 1)
+abline(h = 1, col = "red", lty = 2)
+```
+
+## Rotación
+
+La rotación de los componentes (utilizando el algoritmo varimax-like del paquete PCAmixdata) se realizó con el objetivo de lograr una estructura simple. En el análisis inicial, muchas variables presentan cargas moderadas en múltiples dimensiones, lo que dificulta la interpretación clínica. La rotación redistribuye la varianza para que cada variable tenga una carga muy alta en un solo factor y cercana a cero en los demás. Esto permite que los ejes de riesgo sean conceptualmente independientes y claramente diferenciables (por ejemplo, separando el malestar cognitivo de la conducta autolesiva), facilitando así la creación de perfiles más precisos y menos ambiguos.
+
+```{r, fig.width=26, fig.height=26}
+# 1. Ejecutar la rotación (usamos dim=3 según tu análisis de varianza)
+res.pcarot <- PCArot(res.pcamix, dim = 3, graph = FALSE)
+
+# 2. Revisar la varianza de los componentes rotados
+# Verás que la inercia total se mantiene, pero se redistribuye para ser más clara
+res.pcarot$eig 
+
+# 3. Extraer y ordenar los squared loadings (cargas) de la Dimensión 1 rotada
+sqload_rot <- res.pcarot$sqload
+sqload_rot_ordenado <- sqload_rot[order(sqload_rot[, 1], decreasing = TRUE), ]
+
+
+
+# 5. Comparar visualmente (opcional)
+# Esto te permitirá ver cómo la rotación "limpió" las variables
+par(mfrow=c(1,2))
+plot(res.pcamix, choice="sqload", main="Antes de Rotación", axes=c(1,2))
+plot(res.pcarot, choice="sqload", main="Después de Rotación (PCArot)", axes=c(1,2))
+```
+
+```{r}
+# 4. Ver las variables que más "pesan" en el perfil principal tras la rotación
+sqload_rot_ordenado
+```
+
+
+La selección de variables para la construcción del modelo final y el futuro clasificador se basó en los Squared Loadings ($sqload$). Se estableció un criterio de inclusión para aquellas variables que demostraron un vínculo robusto con las dimensiones principales, seleccionando aquellas con un valor superior a $0.20$ (lo que representa una contribución significativa a la varianza del componente). Este procedimiento permite descartar variables con bajo poder discriminativo o que introducen ruido estadístico, asegurando que el clasificador se fundamente únicamente en los indicadores que mejor definen la crisis psicosocial y el riesgo en la población atendida.
+
+El uso del punto de corte de 0.2 en los squared loadings ($sqload$) se justifica por la necesidad de asegurar que cada variable integrada al modelo tenga una relevancia clínica y estadística sustancial, explicando al menos el 20% de la varianza de su respectiva dimensión. En el contexto del paquete PCAmixdata, este umbral garantiza que las variables seleccionadas posean un vínculo sólido con los ejes rotados, lo que permite diferenciar con claridad el malestar subjetivo de la conducta autolesiva. Al filtrar variables con pesos inferiores, se elimina el ruido estadístico y la ambigüedad, resultando en un modelo más parsimonioso y robusto, ideal para ser implementado en un algoritmo de clasificación o una aplicación móvil de detección de riesgo.
+
+## Con variables sumplementarias
+
+```{r}
+# -------------------------------------------------------------------------
+# 1. PREPARACIÓN DE BLOQUES DE VARIABLES (con nombres renombrados)
+# -------------------------------------------------------------------------
+
+library(dplyr)
+
+# A. VARIABLES ACTIVAS (las que definen los perfiles)
+X1_activa <- df_filtrado %>%
+  select(
+    `Dificultad para reconocer logros`,
+    `Soledad`,
+    `Incapacidad para solucionar`,
+    `Sentirse sin propósito`,
+    `Tendencia a ocultar emociones`,
+    `Dificultad para pedir ayuda`,
+    `Preocupación`,
+    `Sin motivación`,
+    `Guardarse sentimientos`,
+    `Conflicto familiar`,                 # Malestar
+
+    `Escala de ideación suicida (EIS)`,
+    `Plan de autolesión`,
+    `Conducción temeraria`,
+    `Intento de autolesión`,
+    `Episodio de autolesión física`,
+    `Abuso de alcohol`,                   # Conducta
+
+    `Edad`                                # Demografía
+  ) %>%
+  as.data.frame()
+
+X2_activa <- df_filtrado %>%
+  select(
+    `Estado civil`,
+    `Ocupación`                           # Demografía cualitativa
+  ) %>%
+  mutate(across(everything(), as.factor)) %>%
+  as.data.frame()
+
+# B. VARIABLES SUPLEMENTARIAS (excluidas)
+X1_sup <- df_filtrado %>%
+  select(
+    `Dificultades económicas`,
+    `Maltrato emocional en la infancia`,
+    `Descontrol de drogas`,
+    `Descontrol del enojo`,
+    `Elevada exigencia académica laboral`
+  ) %>%
+  as.data.frame()
+
+X2_sup <- df_filtrado %>%
+  select(
+    `Escolaridad`,
+    `Crisis de pareja actual`,
+    `Ruptura reciente`,
+    `Suicidio de un familiar`,
+    `Consumo de medicamento psiquiátrico`,
+    `Tiene medidas cautelares`
+  ) %>%
+  mutate(across(everything(), as.factor)) %>%
+  as.data.frame()
+
+```
+
+
+```{r}
+# -------------------------------------------------------------------------
+# 2. ANÁLISIS MULTIVARIADO (PCAmix + ROTACIÓN + SUPVAR)
+# -------------------------------------------------------------------------
+
+# 2.1 PCAmix inicial
+res.pcamix <- PCAmix(X.quanti = X1_activa, X.quali = X2_activa, 
+                     rename.level = TRUE, graph = FALSE)
+
+# 2.2 Rotación de 3 dimensiones para limpiar los perfiles
+res.pcarot <- PCArot(res.pcamix, dim = 3, graph = FALSE)
+
+# 2.3 Proyección de variables suplementarias sobre los ejes rotados
+res.final <- supvar(res.pcarot, X.quanti.sup = X1_sup, 
+                    X.quali.sup = X2_sup, rename.level = TRUE)
+```
+
+
+## Visualizaciones
+
+```{r, fig.width=26, fig.height=26}
+# -------------------------------------------------------------------------
+# 3. VISUALIZACIONES PARA EL ARTÍCULO
+# -------------------------------------------------------------------------
+
+# Configuración de márgenes para las gráficas
+par(mfrow = c(1, 2))
+
+# (a) Mapa de Variables (Squared Loadings): Define qué mide cada eje
+plot(res.final, choice = "sqload", coloring.var = TRUE, leg = TRUE,
+     main = "Estructura del Riesgo (Dim 1 y 2)", axes = c(1, 2))
+
+# (b) Mapa de Observaciones: Hombres coloreados por Estado Civil
+# Esto permite ver visualmente si el estado civil segmenta el riesgo
+plot(res.final, choice = "ind", coloring.ind = X2_activa$estado_civil, 
+     label = FALSE, posleg = "bottomright", 
+     main = "Distribución de Hombres por Estado Civil")
+
+# (c) Mapa de Niveles: Ver dónde caen las categorías cualitativas
+par(mfrow = c(1, 1))
+plot(res.final, choice = "levels", main = "Proximidad entre Categorías de Riesgo")
+```
+
+
+```{r, fig.width=26, fig.height=10}
+# -------------------------------------------------------------------------
+# 3. VISUALIZACIÓN ACADÉMICA
+# -------------------------------------------------------------------------
+
+# Configuramos un área de dibujo para comparar las dimensiones principales
+par(mfrow = c(1, 2)) 
+
+# Gráfico A: Estructura del Riesgo (Dimensiones 1 y 2)
+# Eje X: Malestar Psicosocial | Eje Y: Conducta Autolesiva
+plot(res.final, choice = "sqload", 
+     coloring.var = TRUE, leg = TRUE,
+     posleg = "topright",
+     main = "Dimensión 1 y Dimensión 2",
+     axes = c(1, 2))
+
+# Gráfico B: Contexto Demográfico (Dimensiones 1 y 3)
+# Eje X: Malestar Psicosocial | Eje Y: Perfil Biográfico
+plot(res.final, choice = "sqload", 
+     coloring.var = TRUE, leg = TRUE,
+     posleg = "topright",
+     main = "Dimensión 1 y Dimensión 3",
+     axes = c(1, 3))
+
+# Restauramos el panel
+par(mfrow = c(1, 1))
+
+# Gráfico C: Mapa de Niveles (Interpretación Clínica)
+# Muestra cómo se agrupan las categorías de las variables cualitativas
+plot(res.final, choice = "levels", 
+     main = "Mapa de Niveles y Categorías de Riesgo",
+     cex = 0.8, palette = rainbow(5))
+
+```
+
+
+
+
+# DIM 1 y DIM 2
+
+```{r, fig.width=13, fig.height=13}
+# -------------------------------------------------------------------------
+# BIPLOTS CON ZOOM ESTRICTO (Ejes de -2 a 2)
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+rango_x <- c(-1.5, 2)
+rango_y <- c(-1, 1.5)
+
+# --- 1. BIPLOT CUANTITATIVO ---
+# Extraemos las coordenadas de individuos
+ind_coords <- res.final$ind$coord
+
+# Creamos el gráfico base vacío con los límites correctos
+plot(ind_coords[,1], ind_coords[,2], 
+     xlim = rango_x, ylim = rango_y,
+     xlab = "Dim 1 (19.29 %)", ylab = "Dim 2 (10.74 %)",
+     main = "Biplot: Factores Cuantitativos",
+     col = "black", pch = 20, cex = 0.8)
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables activas
+quanti_coords <- res.final$quanti$coord
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+
+# --- 2. BIPLOT CATEGÓRICO (NIVELES) ---
+# Creamos el segundo gráfico base con los mismos límites
+plot(ind_coords[,1], ind_coords[,2], 
+     xlim = rango_x, ylim = rango_y,
+     xlab = "Dim 1 (19.29 %)", ylab = "Dim 2 (10.74 %)",
+     main = "Biplot: Categorías (Niveles)",
+     col = "black", pch = 20, cex = 0.8)
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+levels_coords <- res.final$levels$coord
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+## DIM 1 y DIM 3
+
+
+```{r, fig.width=13, fig.height=13}
+# -------------------------------------------------------------------------
+# BIPLOTS CON ZOOM ESTRICTO (Ejes de -2 a 2)
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+rango_x <- c(-1.5, 2)
+rango_y <- c(-1, 1.5)
+
+# --- 1. BIPLOT CUANTITATIVO ---
+# Extraemos las coordenadas de individuos
+ind_coords <- res.final$ind$coord
+
+# Creamos el gráfico base vacío con los límites correctos
+plot(ind_coords[,1], ind_coords[,3], 
+     xlim = rango_x, ylim = rango_y,
+     xlab = "Dim 1 (19.29 %)", ylab = "Dim 3 (4.98 %)",
+     main = "Biplot: Factores Cuantitativos",
+     col = "black", pch = 20, cex = 0.8)
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables activas
+quanti_coords <- res.final$quanti$coord
+arrows(0, 0, quanti_coords[,1], quanti_coords[,3], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,3], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+
+# --- 2. BIPLOT CATEGÓRICO (NIVELES) ---
+# Creamos el segundo gráfico base con los mismos límites
+plot(ind_coords[,1], ind_coords[,3], 
+     xlim = rango_x, ylim = rango_y,
+     xlab = "Dim 1 (19.29 %)", ylab = "Dim 3 (4.98 %)",
+     main = "Biplot: Categorías (Niveles)",
+     col = "black", pch = 20, cex = 0.8)
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+levels_coords <- res.final$levels$coord
+points(levels_coords[,1], levels_coords[,3], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,3], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+## Guardar
+
+```{r}
+dim(res.final$ind$coord)
+```
+
+```{r}
+# Guardamos solo el objeto con las dimensiones rotadas y suplementarias
+saveRDS(res.final, "../data/resultado_pcamix_final.rds")
+```
+
+
+# Gráficos artícul0
+
+```{r}
+eig_rot <- as.data.frame(res.pcarot$eig)
+
+tabla_rot <- data.frame(
+  Dimension   = paste("Dimensión", 1:nrow(eig_rot), "rotada"),
+  Autovalor   = eig_rot$Variance,
+  Porcentaje  = eig_rot$Proportion,
+  Acumulado   = cumsum(eig_rot$Proportion)
+)
+
+tabla_rot
+
+```
+
+
+```{r, fig.width=16, fig.height=8}
+# -------------------------------------------------------------------------
+# CÍRCULOS DE CORRELACIONES DIM 1-2 Y DIM 1-3
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+
+# --- 1. CÍRCULO CUANTITATIVO DIM 1 Y 2 ---
+# Extraemos las coordenadas de las variables
+quanti_coords <- res.final$quanti$coord
+
+# Creamos el gráfico base vacío sin límites fijos
+plot(quanti_coords[,1], quanti_coords[,2], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 2 (14.92 %)",
+     main = "Círculo de Correlaciones: Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables activas
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+
+# --- 2. CÍRCULO CUANTITATIVO DIM 1 Y 3 ---
+# Creamos el segundo gráfico base sin límites fijos
+plot(quanti_coords[,1], quanti_coords[,3], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 3 (7.06 %)",
+     main = "Círculo de Correlaciones: Dimensión 1 y Dimensión 3")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables
+arrows(0, 0, quanti_coords[,1], quanti_coords[,3], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,3], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+```{r, fig.width=16, fig.height=8}
+# -------------------------------------------------------------------------
+# CÍRCULOS DE CORRELACIONES CATEGORÍAS (CENTROIDES) DIM 1-2 Y DIM 1-3
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+
+# --- 1. CÍRCULO CATEGÓRICO DIM 1 Y 2 ---
+levels_coords <- res.final$levels$coord
+
+# Creamos el gráfico base vacío sin límites fijos
+plot(levels_coords[,1], levels_coords[,2], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 2 (14.92 %)",
+     main = "Plano factorial: Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+
+
+# --- 2. CÍRCULO CATEGÓRICO DIM 1 Y 3 ---
+# Creamos el segundo gráfico base sin límites fijos
+plot(levels_coords[,1], levels_coords[,3], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 3 (7.06 %)",
+     main = "Plano factorial Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+points(levels_coords[,1], levels_coords[,3], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,3], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+```{r, fig.width=16, fig.height=8}
+# -------------------------------------------------------------------------
+# CÍRCULOS DE CORRELACIONES DIM 1-2 Y DIM 1-3
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+
+# --- 1. CÍRCULO CUANTITATIVO DIM 1 Y 2 ---
+# Extraemos las coordenadas de las variables
+quanti_coords <- res.final$quanti$coord
+
+# Creamos el gráfico base vacío sin límites fijos
+plot(quanti_coords[,1], quanti_coords[,2], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 2 (14.92 %)",
+     main = "Círculo de Correlaciones: Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables activas
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+
+# --- 1. CÍRCULO CATEGÓRICO DIM 1 Y 2 ---
+levels_coords <- res.final$levels$coord
+
+# Creamos el gráfico base vacío sin límites fijos
+plot(levels_coords[,1], levels_coords[,2], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 2 (14.92 %)",
+     main = "Plano factorial: Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+
+```{r, fig.width=16, fig.height=8}
+# -------------------------------------------------------------------------
+# CÍRCULOS DE CORRELACIONES DIM 1-2 Y DIM 1-3
+# -------------------------------------------------------------------------
+
+# Configuración de panel 1x2
+par(mfrow = c(1, 2))
+
+# --- 1. CÍRCULO CUANTITATIVO DIM 1 Y 3 ---
+# Extraemos las coordenadas de las variables
+plot(quanti_coords[,1], quanti_coords[,3], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 3 (7.06 %)",
+     main = "Círculo de Correlaciones: Dimensión 1 y Dimensión 3")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos las flechas de las variables
+arrows(0, 0, quanti_coords[,1], quanti_coords[,3], 
+       length = 0.1, col = "darkblue", lwd = 2)
+text(quanti_coords[,1], quanti_coords[,3], labels = rownames(quanti_coords), 
+     pos = 3, col = "darkblue", cex = 0.7)
+
+
+# --- 2. CÍRCULO CATEGÓRICO DIM 1 Y 3 ---
+# Creamos el segundo gráfico base sin límites fijos
+plot(levels_coords[,1], levels_coords[,3], 
+     type = "n",
+     xlab = "Dim 1 (19.23 %)", ylab = "Dim 3 (7.06 %)",
+     main = "Plano factorial Dimensión 1 y Dimensión 2")
+abline(h = 0, v = 0, lty = 2, col = "black")
+
+# Superponemos los centroides de las categorías (Triángulos)
+points(levels_coords[,1], levels_coords[,3], pch = 17, col = "darkred", cex = 1.2)
+text(levels_coords[,1], levels_coords[,3], labels = rownames(levels_coords), 
+     pos = 4, col = "darkred", cex = 0.7)
+# Restaurar panel
+par(mfrow = c(1, 1))
+```
+
+```{r}
+# 1. Abrir el dispositivo gráfico para guardar en ALTA RESOLUCIÓN (300 DPI)
+# Se usa un ancho de 12 pulgadas para que las etiquetas no se amontonen.
+png("../data/Figura_Correlaciones_APA.png", 
+    width = 12, height = 6, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de panel 1x2 con márgenes ajustados
+# mar = c(abajo, izquierda, arriba, derecha). 
+# "arriba" se reduce a 1 porque ya no hay título.
+par(mfrow = c(1, 2), mar = c(5, 5, 1, 1))
+
+# -------------------------------------------------------------------------
+# PANEL A: VARIABLES CUANTITATIVAS (Vectores)
+# -------------------------------------------------------------------------
+quanti_coords <- res.final$quanti$coord
+
+# Gráfico base sin título
+plot(quanti_coords[,1], quanti_coords[,2], 
+     type = "n",
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", # <--- IMPORTANTE: Dejar vacío para APA
+     cex.lab = 1.1, # Tamaño etiqueta ejes
+     cex.axis = 1.0) # Tamaño números ejes
+
+# Líneas de referencia (ejes 0,0) en gris para no distraer
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+
+# Flechas y Texto
+# Usamos negro o azul muy oscuro para máximo contraste
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], 
+       length = 0.1, col = "black", lwd = 1.5)
+
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "black", cex = 0.8, font = 2) # font=2 es negrita
+
+# Añadir una letra 'A' en la esquina para identificar el panel (opcional pero recomendado)
+legend("topleft", legend = "A", bty = "n", cex = 1.5, text.font = 2)
+
+
+# -------------------------------------------------------------------------
+# PANEL B: VARIABLES CATEGÓRICAS (Centroides)
+# -------------------------------------------------------------------------
+levels_coords <- res.final$levels$coord
+
+# Gráfico base sin título
+plot(levels_coords[,1], levels_coords[,2], 
+     type = "n",
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", # <--- IMPORTANTE: Dejar vacío
+     cex.lab = 1.1,
+     cex.axis = 1.0)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+
+# Puntos y Texto
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "black", cex = 1.5)
+
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "black", cex = 0.8, font = 1) 
+     # Nota: Puedes cambiar pos=4 (derecha), 1 (abajo), 2 (izq), 3 (arriba) si se solapan.
+
+# Añadir letra 'B'
+legend("topleft", legend = "B", bty = "n", cex = 1.5, text.font = 2)
+
+# 3. Cerrar dispositivo (Guardar imagen)
+dev.off()
+
+# Restaurar panel por si sigues trabajando en R
+par(mfrow = c(1, 1))
+```
+
+```{r}
+# 1. Abrir dispositivo gráfico
+png("../img/Dim1_2.png", 
+    width = 26, height = 8, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de panel 1x2
+par(mfrow = c(1, 2), mar = c(5, 5, 2.5, 1))
+
+# =========================================================================
+# CONFIGURACIÓN DE EJES PERSONALIZADA (AJUSTA AQUÍ TUS VALORES)
+# =========================================================================
+
+# --- PARA EL PANEL A (FLECHAS) ---
+# Ajusta esto para que las flechas se vean grandes pero no se salgan.
+xlim_A <- c(-0.5, 1.0)  
+ylim_A <- c(-0.4, 1.0)
+
+# --- PARA EL PANEL B (TEXTO LARGO) ---
+# Aquí necesitamos más espacio a la derecha (segundo valor de xlim) 
+# para que "Pensionado/Jubilado" no se corte.
+xlim_B <- c(-1.5, 1.0)  
+ylim_B <- c(-0.5, 1.0)
+
+# =========================================================================
+
+
+# -------------------------------------------------------------------------
+# PANEL A (Izquierda) - Variables Cuantitativas
+# -------------------------------------------------------------------------
+quanti_coords <- res.final$quanti$coord
+
+plot(quanti_coords[,1], quanti_coords[,2], 
+     type = "n",
+     xlim = xlim_A,        # <--- Usa límites de A
+     ylim = ylim_A,        # <--- Usa límites de A
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", 
+     cex.lab = 1.1, cex.axis = 1.0)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], length = 0.1, col = "black", lwd = 1.5)
+
+# Etiquetas de las variables
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "black", cex = 1, font = 2)
+
+# LETRA A
+mtext("A", side = 3, line = 0.5, adj = -0.05, cex = 1.5, font = 2)
+
+
+# -------------------------------------------------------------------------
+# PANEL B (Derecha) - Variables Categóricas
+# -------------------------------------------------------------------------
+levels_coords <- res.final$levels$coord
+
+plot(levels_coords[,1], levels_coords[,2], 
+     type = "n",
+     xlim = xlim_B,        # <--- Usa límites de B (más amplios)
+     ylim = ylim_B,        # <--- Usa límites de B
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", 
+     cex.lab = 1.1, cex.axis = 1.0)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "black", cex = 1.5)
+
+# Etiquetas de las categorías
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "black", cex = 0.8, font = 1) 
+
+# LETRA B
+mtext("B", side = 3, line = 0.5, adj = -0.05, cex = 1.5, font = 2)
+
+# 3. Guardar y cerrar
+dev.off()
+par(mfrow = c(1, 1))
+```
+
+
+```{r}
+# 1. Abrir dispositivo gráfico en la carpeta "../img/"
+png("../img/Dim1_3.png", 
+    width = 26, height = 8, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de panel 1x2 con espacio superior para letras
+par(mfrow = c(1, 2), mar = c(5, 5, 2.5, 1))
+
+# -------------------------------------------------------------------------
+# PANEL A (Izquierda) - Variables Cuantitativas (Dim 1 vs 3)
+# -------------------------------------------------------------------------
+quanti_coords <- res.final$quanti$coord
+
+# Notar el cambio: eje Y ahora es columna 3
+plot(quanti_coords[,1], quanti_coords[,3], 
+     type = "n",
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 3 (7.06 %)", # Etiqueta actualizada
+     main = "", 
+     cex.lab = 1.1, cex.axis = 1.0)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+arrows(0, 0, quanti_coords[,1], quanti_coords[,3], length = 0.1, col = "black", lwd = 1.5)
+
+text(quanti_coords[,1], quanti_coords[,3], labels = rownames(quanti_coords), 
+     pos = 3, col = "black", cex = 1, font = 2)
+
+# LETRA A
+mtext("A", side = 3, line = 0.5, adj = -0.05, cex = 1.5, font = 2)
+
+
+# -------------------------------------------------------------------------
+# PANEL B (Derecha) - Variables Categóricas (Dim 1 vs 3)
+# -------------------------------------------------------------------------
+levels_coords <- res.final$levels$coord
+
+# Notar el cambio: eje Y ahora es columna 3
+plot(levels_coords[,1], levels_coords[,3], 
+     type = "n",
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 3 (7.06 %)", 
+     main = "", 
+     cex.lab = 1.1, cex.axis = 1.0)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+points(levels_coords[,1], levels_coords[,3], pch = 17, col = "black", cex = 1.5)
+
+text(levels_coords[,1], levels_coords[,3], labels = rownames(levels_coords), 
+     pos = 4, col = "black", cex = 0.8, font = 1) 
+
+# LETRA B
+mtext("B", side = 3, line = 0.5, adj = -0.05, cex = 1.5, font = 2)
+
+# 3. Guardar y cerrar
+dev.off()
+par(mfrow = c(1, 1))
+```
+
+
+# Vertical 
+
+```{r}
+# 1. Abrir dispositivo gráfico (FORMATO VERTICAL)
+png("../img/Dim1_2_vertical.png", 
+    width = 16, height = 20, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de panel 2 filas x 1 columna
+# -------------------------------------------------------------------------
+# CAMBIO AQUÍ: Aumentamos márgenes (los dos primeros valores de 5 a 6)
+# para que quepan las etiquetas de los ejes que ahora son más grandes.
+# -------------------------------------------------------------------------
+par(mfrow = c(2, 1), mar = c(6, 6, 3, 1)) 
+
+# =========================================================================
+# CONFIGURACIÓN DE EJES PERSONALIZADA
+# =========================================================================
+
+# --- PARA EL PANEL A (FLECHAS) ---
+xlim_A <- c(-0.2, 1.0)  
+ylim_A <- c(-0.1, 1.0)
+
+# --- PARA EL PANEL B (TEXTO LARGO) ---
+xlim_B <- c(-1.4, 0.9)  
+ylim_B <- c(-0.3, 0.9)
+
+# =========================================================================
+
+
+# -------------------------------------------------------------------------
+# PANEL A (Arriba) - Variables Cuantitativas
+# -------------------------------------------------------------------------
+quanti_coords <- res.final$quanti$coord
+
+plot(quanti_coords[,1], quanti_coords[,2], 
+     type = "n",
+     xlim = xlim_A, 
+     ylim = ylim_A, 
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", 
+     # -------------------------------------------------------------------
+     # CAMBIO AQUÍ: cex.lab controla el tamaño de las etiquetas de los ejes
+     # cex.axis controla el tamaño de los números
+     # -------------------------------------------------------------------
+     cex.lab = 2, cex.axis = 2)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+arrows(0, 0, quanti_coords[,1], quanti_coords[,2], length = 0.1, col = "black", lwd = 1.5)
+
+# Etiquetas de las variables
+text(quanti_coords[,1], quanti_coords[,2], labels = rownames(quanti_coords), 
+     pos = 3, col = "black", cex = 1.8, font = 1)
+
+# LETRA A
+mtext("A", side = 3, line = 1, adj = -0.05, cex = 2, font = 2)
+
+
+# -------------------------------------------------------------------------
+# PANEL B (Abajo) - Variables Categóricas
+# -------------------------------------------------------------------------
+levels_coords <- res.final$levels$coord
+
+plot(levels_coords[,1], levels_coords[,2], 
+     type = "n",
+     xlim = xlim_B, 
+     ylim = ylim_B, 
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 2 (14.92 %)",
+     main = "", 
+     # -------------------------------------------------------------------
+     # CAMBIO AQUÍ: Igualamos el tamaño al del Panel A
+     # -------------------------------------------------------------------
+     cex.lab = 2, cex.axis = 2)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+points(levels_coords[,1], levels_coords[,2], pch = 17, col = "black", cex = 1.5)
+
+# Etiquetas de las categorías (Mantenemos el tamaño grande del paso anterior)
+text(levels_coords[,1], levels_coords[,2], labels = rownames(levels_coords), 
+     pos = 4, col = "black", cex = 1.8, font = 1) 
+
+# LETRA B
+mtext("B", side = 3, line = 1, adj = -0.05, cex = 2, font = 1)
+
+# 3. Guardar y cerrar
+dev.off()
+par(mfrow = c(1, 1))
+```
+
+
+```{r}
+# 1. Abrir dispositivo gráfico (FORMATO VERTICAL)
+# Usamos las mismas medidas verticales que funcionaron bien antes
+png("../img/Dim1_3_vertical.png", 
+    width = 16, height = 20, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de panel 2 filas x 1 columna
+# Margen superior en 3 para dar aire a las letras A y B
+par(mfrow = c(2, 1), mar = c(5, 5, 3, 1))
+
+# =========================================================================
+# CONFIGURACIÓN DE EJES PERSONALIZADA (DIM 1 vs DIM 3)
+# =========================================================================
+
+# --- PARA EL PANEL A (FLECHAS - Dim 3 suele tener "Edad" larga) ---
+# Ajusta ylim_A si la flecha de "Edad" se corta arriba o abajo
+xlim_A <- c(-0.2, 1)  
+ylim_A <- c(-0.2, 0.9) 
+
+# --- PARA EL PANEL B (CATEGORÍAS - "Viudo", "Pensionado") ---
+# Ajusta xlim_B si el texto a la derecha se corta
+xlim_B <- c(-1.0, 1)  
+ylim_B <- c(-1.0, 1.0)
+
+# =========================================================================
+
+
+# -------------------------------------------------------------------------
+# PANEL A (Arriba) - Variables Cuantitativas (DIM 1 vs DIM 3)
+# -------------------------------------------------------------------------
+quanti_coords <- res.final$quanti$coord
+
+# NOTA: Usamos [,3] para el eje Y
+plot(quanti_coords[,1], quanti_coords[,3], 
+     type = "n",
+     xlim = xlim_A,        # <--- Usa límites de A
+     ylim = ylim_A,        # <--- Usa límites de A
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 3 (7.06 %)", # Etiqueta correcta
+     main = "", 
+     cex.lab = 2, cex.axis = 2)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+arrows(0, 0, quanti_coords[,1], quanti_coords[,3], length = 0.1, col = "black", lwd = 1.5)
+
+# Etiquetas de las variables (usando col 3)
+text(quanti_coords[,1], quanti_coords[,3], labels = rownames(quanti_coords), 
+     pos = 3, col = "black", cex = 1.8, font = 1)
+
+# LETRA A
+mtext("A", side = 3, line = 1, adj = -0.05, cex = 2, font = 1)
+
+
+# -------------------------------------------------------------------------
+# PANEL B (Abajo) - Variables Categóricas (DIM 1 vs DIM 3)
+# -------------------------------------------------------------------------
+levels_coords <- res.final$levels$coord
+
+# NOTA: Usamos [,3] para el eje Y
+plot(levels_coords[,1], levels_coords[,3], 
+     type = "n",
+     xlim = xlim_B,        # <--- Usa límites de B
+     ylim = ylim_B,        # <--- Usa límites de B
+     xlab = "Dimensión 1 (19.23 %)", 
+     ylab = "Dimensión 3 (7.06 %)", 
+     main = "", 
+     cex.lab = 2, cex.axis = 2)
+
+abline(h = 0, v = 0, lty = 2, col = "gray40")
+points(levels_coords[,1], levels_coords[,3], pch = 17, col = "black", cex = 1.5)
+
+# Etiquetas de las categorías (usando col 3)
+text(levels_coords[,1], levels_coords[,3], labels = rownames(levels_coords), 
+     pos = 4, col = "black", cex = 1.8, font = 1) 
+
+# LETRA B
+mtext("B", side = 3, line = 1, adj = -0.05, cex = 2, font = 2)
+
+# 3. Guardar y cerrar
+dev.off()
+par(mfrow = c(1, 1))
+```
+
+
+

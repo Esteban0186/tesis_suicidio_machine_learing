@@ -1,0 +1,258 @@
+---
+title: "Filtrado"
+author: "Esteban Navarro"
+date: "2025-12-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Librerías
+
+```{r, warning= FALSE, message=FALSE}
+library(tidyverse)
+source("../funciones/leer_df_final.R")
+library(lsr)
+```
+
+# Carga de los data sets
+
+```{r}
+df_final <- leer_df_final("../data/df_final.csv")
+```
+
+```{r}
+glimpse(df_final)
+```
+
+# Eta - Datos categóricos
+
+Definición de variables.
+
+```{r}
+# ==========================================
+# 1. DEFINICIÓN DE VARIABLES
+# ==========================================
+target <- "EIS_Roberts"  # Tu variable dependiente (numérica)
+umbral <- 0.03           # El corte sugerido por el paper Ufeli et al.
+
+# --- DEFINICIÓN DE UMBRALES ---
+umbral_cat <- 0.03  # Criterio del paper (para variables Categóricas/Factores)
+umbral_num <- 0.20  # Criterio ajustado (para variables Numéricas) - Asumido 0.2
+# ==============================================================================
+
+resultados <- data.frame(
+  Variable = character(),
+  Tipo = character(),
+  Metrica = character(),
+  Valor = numeric(),
+  Umbral_Usado = numeric(),
+  Decision = character(),
+  stringsAsFactors = FALSE
+)
+```
+
+
+# Filtrado
+
+
+
+
+
+```{r}
+vars_predictoras <- setdiff(names(df_final), target)
+
+cat("\n--- Iniciando evaluación ---")
+cat("\nUmbral Categóricas (Eta):", umbral_cat)
+cat("\nUmbral Numéricas (Pearson):", umbral_num, "\n")
+
+# Reiniciamos el dataframe de resultados para evitar duplicados si corres el bloque varias veces
+resultados <- data.frame(
+  Variable = character(),
+  Tipo = character(),
+  Metrica = character(),
+  Valor = numeric(),
+  Umbral_Usado = numeric(),
+  Decision = character(),
+  stringsAsFactors = FALSE
+)
+
+for (var in vars_predictoras) {
+  
+  # Inicializamos variables de control
+  valor_final <- 0
+  tipo <- ""
+  metrica <- ""
+  umbral_aplicar <- 0
+  
+  # A. CASO NUMÉRICO -> Usamos Pearson y umbral_num
+  if (is.numeric(df_final[[var]])) {
+    # Usamos 'complete.obs' para ignorar NAs automáticamente
+    cor_val <- cor(df_final[[target]], df_final[[var]], use = "complete.obs", method = "pearson")
+    valor_final <- abs(cor_val)
+    metrica <- "|Pearson r|"
+    tipo <- "Numérica"
+    umbral_aplicar <- umbral_num
+    
+  # B. CASO CATEGÓRICO -> Usamos R^2 de lm (equivalente a Eta^2)
+  } else if (is.factor(df_final[[var]]) || is.character(df_final[[var]])) {
+    
+    # Verificación de seguridad: ¿Tiene la variable al menos 2 niveles?
+    # Si una variable es constante (ej. todos dicen "No"), no se puede calcular.
+    n_levels <- length(unique(na.omit(df_final[[var]])))
+    
+    if (n_levels < 2) {
+       valor_final <- 0
+       metrica <- "Error (Constante)"
+       tipo <- "Categórica"
+       umbral_aplicar <- umbral_cat
+    } else {
+       tryCatch({
+         # Calculamos modelo lineal (ANOVA de una vía)
+         # target ~ variable categórica
+         modelo <- lm(df_final[[target]] ~ df_final[[var]])
+         
+         # Extraemos R^2
+         r_sq <- summary(modelo)$r.squared
+         
+         # Eta es la raíz cuadrada del R^2 (interpretación similar a correlación)
+         valor_final <- sqrt(r_sq) 
+         
+         metrica <- "Eta (desde R2)"
+         tipo <- "Categórica"
+         umbral_aplicar <- umbral_cat
+         
+       }, error = function(e) {
+         # Si falla algo inesperado, capturamos el error sin detener el loop
+         valor_final <<- 0
+         metrica <<- "Error Cálculo"
+         tipo <<- "Error"
+         umbral_aplicar <<- umbral_cat
+       })
+    }
+  }
+  
+  # Decisión comparando contra el umbral específico del tipo de variable
+  # Manejo de NAs en valor_final por si acaso (aunque el tryCatch lo evita)
+  if (is.na(valor_final)) valor_final <- 0
+  
+  decision <- ifelse(valor_final >= umbral_aplicar, "Conservar", "Descartar")
+  
+  resultados <- rbind(resultados, data.frame(
+    Variable = var,
+    Tipo = tipo,
+    Metrica = metrica,
+    Valor = round(valor_final, 4),
+    Umbral_Usado = umbral_aplicar,
+    Decision = decision
+  ))
+}
+```
+
+
+
+
+
+
+# Resultados
+
+```{r}
+# ==============================================================================
+# 2. RESULTADOS Y EXPORTACIÓN
+# ==============================================================================
+
+# Ordenar por valor (independiente del tipo) para ver las más fuertes arriba
+resultados_ordenados <- resultados %>% arrange(desc(Valor))
+
+print(resultados_ordenados)
+
+# Extraer vector final
+vars_seleccionadas <- resultados_ordenados %>% 
+  filter(Decision == "Conservar") %>% 
+  pull(Variable)
+
+cat("\n================================================")
+cat("\nRESUMEN FINAL")
+cat("\nVariables Conservadas:", length(vars_seleccionadas))
+cat("\nVariables Descartadas:", length(vars_predictoras) - length(vars_seleccionadas))
+cat("\n================================================\n")
+```
+
+```{r}
+vars_seleccionadas
+```
+
+# Filtrado del data set
+
+## Data set sin escalar
+
+```{r}
+vars_a_conservar <- c(
+  "plan_autolesion", "autolesion_fisica", "intento_autolesion", "sin_proposito",
+  "incapaz_solucionar", "conflicto_familiar", "sin_motivacion", "soledad",
+  "conduccion_temeraria", "no_reconocer_logros", "preocupado", "ocultar_emociones",
+  "descontrol_enojo", "exigencia_academica_laboral", "dificultad_economica", 
+  "ruptura_reciente", "maltrato_emocional", "guarda_sentimientos", 
+  "dificultad_pedir_ayuda", "estado_civil", "crisis_pareja_actual", 
+  "descontrol_drogas", "abuso_alcohol", "edad", "medicamento_psiquiatrico", 
+  "escolaridad", "medidas_cautelares", "ocupacion", 
+  "suicidio_familiar"
+)
+```
+
+```{r}
+vars_finales <- unique(c(vars_a_conservar, "EIS_Roberts"))
+```
+
+```{r}
+df_filtrado <- df_final %>% 
+  select(all_of(vars_finales))
+```
+
+```{r}
+dim(df_filtrado)
+```
+
+```{r}
+write.csv(df_filtrado, "../data/df_filtrado.csv", row.names = FALSE)
+```
+
+## Data set escalado
+
+```{r}
+df_escalado <- read.csv("../data/df_escalado.csv")
+```
+
+```{r}
+glimpse(df_escalado)
+```
+
+```{r}
+df_escalado_filtrado <- df_escalado %>% 
+  select(
+    -sesiones_cumplidas,
+    -salud_fisica,
+    -castigo_fisico,
+    -abuso_sexual,
+    -starts_with("discapacidad_fisica") 
+  )
+```
+
+```{r}
+dim(df_escalado_filtrado)
+```
+
+```{r}
+write.csv(df_escalado_filtrado, "../data/df_escalado_filtrado.csv", row.names = FALSE)
+```
+
+```{r}
+saveRDS(df_escalado, "../data/df_escalado.rds")
+```
+
+```{r}
+str(df_escalado_filtrado)
+```
+

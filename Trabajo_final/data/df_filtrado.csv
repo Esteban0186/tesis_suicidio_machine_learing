@@ -1,0 +1,227 @@
+"plan_autolesion","autolesion_fisica","intento_autolesion","sin_proposito","incapaz_solucionar","conflicto_familiar","sin_motivacion","soledad","conduccion_temeraria","no_reconocer_logros","preocupado","ocultar_emociones","descontrol_enojo","exigencia_academica_laboral","dificultad_economica","ruptura_reciente","maltrato_emocional","guarda_sentimientos","dificultad_pedir_ayuda","estado_civil","crisis_pareja_actual","descontrol_drogas","abuso_alcohol","edad","medicamento_psiquiatrico","escolaridad","medidas_cautelares","ocupacion","suicidio_familiar","EIS_Roberts"
+0,0,0,0,0,1,0,0,0,0,1,4,0,6,1,"No",4,1,2,"Divorciado","No",0,0,55,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,1,0,0,0,1,2,2,1,1,1,3,"No",1,1,2,"Soltero","No",0,0,32,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,"No",4,2,2,"Divorciado","No",0,0,39,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+6,4,6,6,6,1,4,4,6,4,6,5,1,6,6,"Sí",4,6,5,"Separado","Sí",0,0,36,"No","Secundaria completa","No","Trabajador asalariado","No",9
+0,0,0,0,0,1,0,1,0,0,2,3,0,1,3,"No",0,4,3,"Soltero","Sí",0,0,50,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,0,0,0,0,0,0,1,4,0,0,1,"No",3,1,1,"Divorciado","No",0,0,50,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,1,3,5,0,3,1,3,3,0,0,0,5,"Sí",5,5,5,"Casado","Sí",0,0,45,"Sí","Secundaria incompleta","No","Trabajador independiente","Sí",1
+0,0,0,0,1,1,1,2,0,6,6,2,1,1,6,"No",3,6,6,"Soltero","Sí",0,0,24,"Sí","Universitario completo","No","Trabajador independiente","Sí",0
+2,0,6,6,0,6,6,0,0,6,6,5,1,0,6,"Sí",0,6,5,"Casado","Sí",0,0,30,"No","Secundaria incompleta","No","Trabajador asalariado","No",2
+0,0,0,1,1,1,2,1,0,6,6,5,1,6,6,"Sí",4,5,4,"Separado","Sí",0,0,28,"No","Secundaria completa","No","Trabajador asalariado","No",2
+0,0,0,0,0,1,1,0,0,0,1,3,0,0,0,"No",0,3,1,"Casado","Sí",0,0,45,"No","Técnico medio / Diplomado","No","Trabajador asalariado","No",0
+0,0,0,2,2,1,2,1,0,1,4,4,1,1,2,"Sí",1,4,3,"Soltero","Sí",0,0,22,"Sí","Universitario completo","No","Trabajador asalariado","No",2
+0,0,0,2,0,1,1,1,0,1,2,3,2,6,1,"Sí",5,3,3,"Casado","No",0,1,43,"No","Secundaria incompleta","No","Trabajador independiente","No",4
+0,0,0,0,1,0,1,0,1,0,6,3,1,5,0,"Sí",2,1,1,"Soltero","Sí",0,0,29,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",1
+0,0,0,0,0,0,1,0,0,1,6,3,0,0,0,"Sí",3,1,0,"Soltero","Sí",0,0,37,"Sí","Universitario incompleto","No","Desempleado","Sí",1
+0,0,0,0,1,1,1,2,1,4,4,3,1,4,1,"No",4,5,4,"Casado","Sí",0,0,40,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,1,0,1,0,3,3,0,2,1,"Sí",0,3,2,"Casado","No",0,0,48,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,4,1,0,6,1,"No",3,4,4,"Casado","No",0,0,68,"No","Universitario incompleto","No","Trabajador independiente","No",0
+0,0,0,1,0,0,1,1,0,0,2,3,1,2,1,"Sí",4,3,3,"Divorciado","Sí",0,0,56,"No","Secundaria incompleta","No","Trabajador asalariado","Sí",0
+0,0,0,1,3,0,1,0,0,2,3,3,0,0,0,"No",4,3,3,"Unión libre","No",1,0,38,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+1,0,0,2,2,1,3,1,0,3,6,3,1,1,0,"Sí",3,3,2,"Soltero","Sí",0,0,31,"Sí","Universitario incompleto","No","Trabajador asalariado","No",4
+0,0,0,1,1,1,1,6,0,6,6,3,1,6,1,"No",4,6,5,"Soltero","No",0,0,34,"Sí","Universitario completo","No","Trabajador independiente","Sí",0
+0,0,0,6,6,3,2,6,0,6,6,5,1,4,6,"No",2,5,5,"Casado","No",0,0,55,"No","Universitario completo","No","Trabajador asalariado","Sí",2
+0,0,0,0,1,1,1,1,0,1,1,3,0,1,1,"Sí",5,3,3,"Unión libre","Sí",0,0,25,"No","Universitario incompleto","No","Estudiante","No",0
+0,0,1,4,4,4,4,5,0,4,6,5,1,4,5,"Sí",4,5,5,"Casado","Sí",0,0,42,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,3,1,0,3,4,0,0,6,5,2,3,6,"Sí",3,6,5,"Unión libre","Sí",0,0,55,"No","Técnico medio / Diplomado","No","Trabajador independiente","No",0
+0,0,0,0,1,2,1,4,0,1,4,4,0,6,2,"Sí",3,1,0,"Soltero","No",1,0,25,"No","Universitario incompleto","No","Trabajador asalariado","Sí",1
+0,0,0,1,0,1,1,1,1,0,1,5,0,1,1,"No",4,4,5,"Casado","Sí",0,0,50,"No","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","Sí",1
+4,6,6,6,6,6,6,6,6,6,6,6,5,6,6,"Sí",4,5,6,"Separado","Sí",6,6,39,"Sí","Secundaria incompleta","Sí","Trabajador asalariado","Sí",12
+0,0,0,6,6,2,6,3,0,6,6,4,1,6,6,"No",4,1,1,"Soltero","No",6,4,34,"Sí","Universitario completo","No","Trabajador asalariado","No",2
+0,0,0,6,3,1,4,1,0,2,6,3,0,0,6,"Sí",3,3,3,"Casado","Sí",6,1,48,"Sí","Primaria completa","No","Trabajador independiente","Sí",2
+0,0,3,6,6,4,6,6,0,6,6,5,1,0,4,"No",4,6,5,"Divorciado","Sí",0,0,65,"No","Universitario completo","Sí","Pensionado / Jubilado","Sí",4
+0,0,0,2,2,1,3,2,1,2,3,4,0,3,1,"No",3,5,5,"Soltero","Sí",0,0,46,"Sí","Universitario completo","No","Trabajador independiente","No",2
+0,0,0,0,0,1,1,1,0,0,5,0,0,1,6,"Sí",0,5,0,"Unión libre","Sí",0,0,43,"No","Universitario incompleto","No","Trabajador independiente","Sí",0
+0,0,0,0,2,0,0,0,1,1,1,0,1,4,4,"No",4,1,1,"Casado","No",0,0,38,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,1,2,1,0,2,2,0,2,4,3,1,1,2,"No",3,3,3,"Soltero","No",0,0,41,"No","Universitario incompleto","No","Trabajador asalariado","No",3
+6,0,6,6,6,6,6,6,6,6,6,6,6,6,6,"Sí",6,6,0,"Divorciado","Sí",2,2,40,"No","Primaria completa","No","Trabajador asalariado","Sí",9
+0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,"No",0,2,0,"Casado","No",0,0,36,"No","Universitario incompleto","Sí","Trabajador asalariado","No",0
+0,0,0,0,0,1,1,1,0,0,6,4,0,6,6,"Sí",4,4,5,"Divorciado","Sí",1,1,46,"Sí","Universitario completo","No","Trabajador asalariado","Sí",0
+0,0,0,0,1,0,0,0,1,1,4,4,1,0,3,"No",4,4,4,"Casado","Sí",0,0,68,"No","Universitario completo","No","Pensionado / Jubilado","No",0
+0,0,0,0,0,0,0,0,0,0,1,6,0,0,0,"No",4,5,3,"Casado","No",0,0,55,"Sí","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,1,2,1,2,1,0,1,4,3,0,1,6,"No",3,3,3,"Separado","Sí",0,0,53,"Sí","Secundaria completa","No","Trabajador asalariado","No",1
+0,0,0,0,1,0,2,2,0,1,2,1,0,1,1,"No",3,3,3,"Viudo","No",0,0,61,"No","Técnico medio / Diplomado","Sí","Trabajador asalariado","No",0
+2,0,2,2,5,2,1,2,2,6,3,6,2,6,6,"Sí",3,6,6,"Casado","Sí",6,1,40,"No","Universitario completo","No","Trabajador asalariado","Sí",3
+0,0,0,1,1,1,1,1,0,1,1,3,1,0,0,"No",6,3,3,"Casado","No",0,0,53,"No","Técnico medio / Diplomado","No","Trabajador independiente","Sí",0
+0,0,0,0,0,1,0,0,0,6,1,3,0,1,0,"No",1,3,3,"Casado","No",0,0,44,"Sí","Primaria completa","No","Trabajador independiente","No",0
+1,0,0,1,1,3,1,0,1,1,2,5,0,1,1,"Sí",3,5,5,"Casado","Sí",0,0,51,"Sí","Primaria incompleta","No","Trabajador asalariado","No",1
+0,0,0,1,0,0,0,1,0,1,2,3,1,1,1,"No",4,4,3,"Soltero","No",0,1,42,"No","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,1,0,0,1,0,0,1,1,1,0,6,0,"No",4,1,0,"Separado","No",0,0,47,"Sí","Universitario incompleto","No","Trabajador independiente","Sí",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"Sí",0,3,1,"Casado","No",0,0,53,"No","Primaria incompleta","No","Trabajador asalariado","No",0
+0,0,0,3,2,0,1,1,1,5,3,4,1,1,2,"Sí",2,4,5,"Soltero","Sí",0,0,32,"No","Universitario completo","No","Trabajador independiente","No",3
+0,0,0,0,0,3,0,0,0,0,1,0,0,0,3,"No",3,3,1,"Viudo","No",0,0,58,"No","Posgrado (Maestría / Doctorado)","No","Desempleado","No",0
+0,0,0,2,1,1,2,1,1,2,3,4,0,1,0,"No",4,5,5,"Casado","Sí",0,0,47,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",3
+0,0,0,0,1,1,1,0,1,0,4,5,0,4,1,"No",3,6,6,"Divorciado","No",0,1,48,"No","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","Sí",0
+0,0,0,1,0,1,0,0,1,2,2,1,1,2,0,"No",1,2,2,"Divorciado","Sí",0,0,57,"No","Universitario completo","No","Trabajador asalariado","No",0
+2,3,5,1,1,1,6,4,1,0,4,3,5,4,4,"Sí",5,5,2,"Divorciado","Sí",2,1,41,"Sí","Secundaria incompleta","Sí","Trabajador asalariado","No",11
+0,0,0,1,1,1,6,0,0,1,6,3,6,6,6,"No",3,3,3,"Unión libre","No",0,0,38,"Sí","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,3,2,1,4,2,1,2,6,4,0,2,4,"Sí",4,3,3,"Soltero","Sí",0,2,39,"No","Universitario completo","No","Trabajador asalariado","No",1
+1,0,1,6,6,0,2,6,0,6,6,4,3,0,0,"No",5,5,4,"Soltero","No",4,3,39,"Sí","Universitario incompleto","No","Trabajador independiente","Sí",0
+0,0,0,0,0,1,1,1,1,0,1,3,0,3,1,"No",3,4,4,"Casado","No",0,0,29,"No","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,6,0,0,6,6,"No",3,2,1,"Unión libre","No",0,0,45,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,"No",0,5,1,"Unión libre","No",0,0,48,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+3,0,0,4,4,2,4,4,2,6,6,4,1,4,6,"No",4,5,5,"Unión libre","No",0,0,42,"Sí","Universitario completo","Sí","Desempleado","Sí",10
+0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,"No",3,3,1,"Separado","No",0,0,70,"No","Técnico medio / Diplomado","No","Trabajador independiente","Sí",0
+0,0,0,1,0,1,1,1,1,1,6,0,1,2,0,"No",4,3,2,"Casado","No",0,0,58,"No","Técnico medio / Diplomado","No","Trabajador asalariado","Sí",1
+0,0,0,1,1,4,1,1,0,4,4,3,2,2,0,"Sí",3,5,5,"Casado","Sí",0,0,45,"No","Universitario completo","No","Trabajador asalariado","Sí",0
+0,0,0,1,0,1,1,0,0,1,6,5,0,6,6,"No",2,6,5,"Unión libre","Sí",0,0,45,"No","Universitario completo","No","Desempleado","No",1
+0,0,0,0,0,1,0,0,0,1,1,3,1,0,0,"No",3,3,3,"Casado","No",0,1,39,"No","Universitario completo","No","Trabajador asalariado","No",1
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",3,4,0,"Casado","No",0,0,47,"No","Universitario incompleto","No","Trabajador independiente","No",0
+1,0,0,1,1,1,1,2,1,2,4,4,1,1,2,"Sí",1,5,5,"Separado","Sí",0,0,43,"No","Secundaria incompleta","No","Trabajador independiente","No",5
+1,0,1,6,1,5,5,6,0,0,3,3,5,0,6,"Sí",1,5,5,"Soltero","No",0,1,24,"No","Secundaria completa","No","Desempleado","Sí",2
+0,0,0,0,0,0,0,0,0,0,0,0,2,0,6,"No",3,0,0,"Casado","Sí",0,0,63,"No","Primaria completa","No","Desempleado","No",0
+0,0,0,0,1,1,0,1,0,0,1,4,1,0,0,"No",2,3,2,"Separado","Sí",0,0,30,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","Sí",0
+5,5,5,5,5,5,4,5,5,5,4,3,2,4,3,"No",1,3,6,"Soltero","Sí",4,3,38,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",1
+0,0,0,0,0,0,0,0,0,0,1,2,0,1,0,"No",1,3,2,"Casado","No",0,0,42,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,1,1,1,1,1,1,1,1,3,0,1,1,"No",3,3,3,"Unión libre","No",0,0,46,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+0,0,2,0,2,1,2,2,2,4,2,3,2,3,4,"No",5,4,4,"Unión libre","No",0,2,48,"No","Técnico medio / Diplomado","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,"No",3,6,5,"Separado","No",0,1,38,"Sí","Universitario incompleto","No","Trabajador asalariado","No",0
+0,0,0,3,3,0,2,1,0,2,4,3,0,3,1,"No",3,3,3,"Soltero","Sí",0,0,30,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,"No",0,1,2,"Casado","No",0,0,61,"No","Técnico medio / Diplomado","No","Trabajador independiente","No",0
+0,0,0,0,0,1,1,1,1,0,1,3,1,0,1,"No",4,2,1,"Casado","No",0,0,68,"Sí","Universitario completo","No","Pensionado / Jubilado","No",0
+0,0,0,0,0,1,1,1,0,0,2,3,1,5,2,"Sí",2,5,4,"Unión libre","Sí",0,0,53,"No","Universitario incompleto","No","Trabajador independiente","No",0
+0,0,0,0,0,5,0,0,1,0,1,4,5,0,0,"No",2,5,5,"Casado","Sí",0,0,49,"No","Universitario incompleto","No","Trabajador independiente","No",0
+0,0,0,0,0,1,0,0,1,0,1,1,0,2,4,"No",3,4,4,"Divorciado","No",0,0,47,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,1,0,1,1,1,0,1,1,4,0,1,0,"Sí",5,4,3,"Casado","Sí",0,0,42,"Sí","Primaria completa","No","Trabajador asalariado","Sí",0
+0,0,0,0,1,1,2,0,0,2,6,0,1,0,6,"No",5,1,2,"Soltero","No",0,0,38,"Sí","Universitario incompleto","No","Trabajador independiente","Sí",0
+0,0,0,1,2,1,3,6,0,2,1,4,1,1,0,"Sí",5,5,3,"Casado","Sí",0,0,50,"No","Secundaria completa","No","Trabajador independiente","No",1
+0,0,0,0,0,0,0,1,1,3,1,3,0,0,2,"No",2,2,3,"Divorciado","Sí",0,0,71,"Sí","Posgrado (Maestría / Doctorado)","No","Pensionado / Jubilado","No",1
+0,0,0,5,5,6,5,6,5,6,6,3,5,5,5,"No",5,3,5,"Soltero","Sí",0,0,47,"Sí","Universitario completo","No","Trabajador independiente","Sí",6
+0,0,0,1,1,1,1,1,0,3,2,4,2,6,0,"No",1,4,3,"Divorciado","Sí",0,2,49,"Sí","Secundaria incompleta","No","Trabajador independiente","Sí",4
+0,0,0,0,0,1,0,1,1,1,1,2,1,1,1,"No",1,5,3,"Unión libre","No",0,0,58,"No","Universitario completo","No","Trabajador independiente","Sí",1
+0,0,0,6,4,0,1,1,0,6,6,5,0,1,0,"No",5,4,3,"Soltero","No",0,1,25,"No","Universitario incompleto","No","Trabajador asalariado","Sí",0
+0,1,1,1,2,2,1,1,0,6,6,4,1,1,0,"Sí",3,5,4,"Casado","Sí",0,0,38,"No","Universitario completo","No","Trabajador asalariado","Sí",1
+0,0,0,5,0,0,2,6,0,6,6,3,0,6,0,"No",6,6,6,"Casado","No",0,0,59,"No","Primaria completa","No","Trabajador asalariado","Sí",0
+0,0,0,0,0,0,0,0,0,0,1,4,0,0,0,"No",4,1,1,"Casado","No",0,0,69,"No","Secundaria completa","No","Pensionado / Jubilado","Sí",0
+1,0,0,6,4,0,6,6,0,6,6,6,0,0,6,"No",6,6,6,"Soltero","No",0,0,28,"No","Universitario completo","No","Desempleado","No",3
+0,0,0,6,6,0,6,5,0,5,6,3,0,0,5,"Sí",1,3,3,"Soltero","Sí",0,0,39,"No","Primaria completa","No","Trabajador asalariado","No",0
+0,0,0,1,0,1,2,0,0,2,6,3,1,4,4,"No",3,3,3,"Soltero","No",0,0,37,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+0,0,0,1,0,0,1,1,0,0,0,3,0,0,0,"No",4,5,3,"Soltero","No",0,0,24,"Sí","Técnico medio / Diplomado","No","Trabajador asalariado","No",0
+0,0,0,1,0,0,1,1,0,1,1,1,0,1,1,"No",1,3,1,"Soltero","No",1,1,42,"Sí","Posgrado (Maestría / Doctorado)","Sí","Trabajador independiente","No",1
+0,0,0,6,6,6,1,6,0,2,6,3,6,6,0,"No",4,5,5,"Casado","Sí",3,1,42,"Sí","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,1,3,0,1,1,0,2,6,1,0,1,6,"No",0,4,3,"Divorciado","Sí",0,0,43,"No","Universitario incompleto","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",3,3,3,"Soltero","No",0,0,38,"No","Primaria incompleta","Sí","Trabajador independiente","No",0
+0,0,0,0,6,2,2,6,1,6,2,6,6,2,2,"Sí",3,6,5,"Casado","Sí",0,0,45,"No","Secundaria incompleta","Sí","Trabajador asalariado","No",0
+0,1,0,0,0,1,1,0,6,1,6,3,0,6,1,"Sí",4,6,4,"Unión libre","No",1,0,32,"Sí","Técnico medio / Diplomado","Sí","Trabajador asalariado","Sí",4
+0,0,0,0,1,1,1,1,1,0,1,3,1,1,1,"Sí",4,3,3,"Unión libre","Sí",0,1,38,"No","Secundaria incompleta","No","Trabajador asalariado","No",0
+0,0,0,0,0,1,0,0,1,0,2,0,0,1,1,"No",2,1,0,"Divorciado","No",0,0,43,"Sí","Posgrado (Maestría / Doctorado)","Sí","Trabajador asalariado","Sí",1
+0,0,0,0,0,3,1,1,0,1,1,1,1,2,3,"No",0,4,2,"Unión libre","Sí",0,1,38,"No","Secundaria incompleta","Sí","Trabajador asalariado","No",0
+0,0,0,0,0,1,0,0,0,0,6,6,0,0,0,"No",3,6,6,"Casado","No",0,0,29,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,0,1,1,0,0,0,1,4,3,1,3,1,"No",3,3,2,"Casado","No",0,0,51,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,1,1,0,0,1,1,6,2,0,0,0,"No",0,4,1,"Casado","No",0,0,65,"No","Secundaria incompleta","No","Pensionado / Jubilado","No",0
+0,0,0,1,0,1,0,0,0,1,6,3,1,1,1,"Sí",2,1,3,"Soltero","No",0,1,52,"Sí","Primaria completa","No","Trabajador independiente","No",0
+0,0,0,0,0,0,1,6,3,6,6,0,0,6,0,"No",3,3,0,"Divorciado","No",1,0,35,"No","Universitario incompleto","No","Trabajador independiente","No",2
+0,0,0,0,5,0,0,2,0,0,0,0,0,0,3,"No",5,0,0,"Casado","No",0,0,49,"No","Primaria completa","No","Trabajador asalariado","No",0
+0,0,0,6,6,4,6,6,0,6,5,4,5,0,0,"Sí",5,4,4,"Divorciado","Sí",0,0,52,"Sí","Primaria incompleta","No","Desempleado","No",6
+0,0,0,0,5,0,5,0,0,6,6,4,2,1,6,"No",3,6,5,"Soltero","No",0,0,49,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","Sí",1
+0,0,0,4,2,1,4,4,1,4,6,3,1,6,6,"Sí",3,5,5,"Divorciado","No",4,2,43,"No","Universitario incompleto","No","Desempleado","No",2
+0,0,0,1,1,1,1,1,0,0,1,0,0,0,1,"No",2,6,2,"Casado","No",0,0,55,"No","Primaria incompleta","No","Trabajador asalariado","No",0
+0,0,0,1,0,1,0,0,0,6,2,0,0,1,5,"No",3,6,1,"Casado","Sí",1,0,52,"No","Primaria completa","No","Trabajador independiente","No",0
+0,0,0,0,0,0,1,0,0,1,3,4,0,2,0,"No",4,2,3,"Divorciado","No",0,0,45,"No","Secundaria incompleta","No","Trabajador asalariado","Sí",0
+0,0,0,6,0,0,4,0,0,5,1,6,0,0,0,"No",5,6,5,"Soltero","No",2,0,26,"No","Técnico medio / Diplomado","No","Trabajador asalariado","No",0
+0,0,0,0,0,1,1,0,0,1,3,3,1,2,0,"No",4,5,3,"Casado","Sí",0,0,40,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,2,0,2,3,0,2,0,"No",3,4,5,"Casado","No",0,0,36,"No","Secundaria completa","No","Trabajador asalariado","Sí",0
+1,0,0,4,4,0,6,1,0,4,6,3,3,2,6,"No",2,3,3,"Casado","No",4,0,40,"Sí","Secundaria completa","No","Trabajador asalariado","No",5
+0,0,0,0,0,1,1,0,0,0,1,1,1,2,1,"No",4,2,2,"Casado","No",0,0,55,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,0,1,1,0,0,1,2,0,1,1,3,"No",2,5,5,"Soltero","Sí",0,0,47,"Sí","Técnico medio / Diplomado","No","Trabajador independiente","No",0
+1,0,3,6,6,0,6,6,0,6,6,6,1,4,0,"Sí",3,6,6,"Separado","Sí",0,1,65,"Sí","Universitario completo","No","Trabajador asalariado","Sí",6
+0,0,0,0,0,1,1,0,0,0,6,3,1,6,1,"No",3,2,2,"Unión libre","Sí",0,0,45,"Sí","Universitario completo","No","Trabajador independiente","Sí",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",0,1,3,"Divorciado","No",0,0,62,"No","Secundaria completa","No","Trabajador independiente","No",0
+0,0,0,1,1,1,1,1,1,1,6,5,2,2,1,"No",2,6,5,"Casado","Sí",0,0,62,"No","Universitario incompleto","No","Trabajador independiente","Sí",2
+5,0,0,5,0,5,5,5,0,5,0,3,0,0,0,"Sí",4,5,5,"Unión libre","Sí",0,0,51,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,"No",1,5,3,"Casado","No",0,0,58,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,0,6,2,5,6,0,6,6,6,2,0,4,"No",4,4,5,"Casado","Sí",0,0,37,"No","Secundaria incompleta","No","Trabajador independiente","Sí",0
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,"No",0,1,1,"Casado","No",0,0,49,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+6,3,3,6,6,6,4,6,6,6,6,6,1,6,0,"Sí",3,6,6,"Unión libre","Sí",0,0,25,"No","Universitario incompleto","No","Trabajador independiente","No",11
+1,0,0,6,0,3,5,4,1,4,6,2,2,2,4,"Sí",4,5,4,"Unión libre","Sí",3,0,35,"Sí","Secundaria completa","No","Trabajador independiente","No",1
+0,0,0,2,1,0,2,1,1,1,2,3,0,0,6,"No",5,3,3,"Soltero","No",6,0,51,"Sí","Universitario incompleto","No","Trabajador asalariado","No",1
+0,0,0,0,0,1,5,0,0,3,3,6,1,0,6,"No",3,5,5,"Soltero","No",0,0,60,"No","Universitario completo","No","Desempleado","No",0
+2,2,2,4,1,6,6,5,0,2,6,6,6,5,3,"Sí",6,6,3,"Divorciado","Sí",0,0,52,"Sí","Primaria incompleta","No","Trabajador independiente","Sí",3
+1,1,1,2,3,6,0,4,4,4,1,6,1,2,6,"No",4,4,5,"Soltero","No",0,0,35,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","Sí",5
+0,1,0,0,0,1,6,1,6,5,2,2,1,0,0,"No",6,6,5,"Unión libre","No",0,0,66,"No","Secundaria incompleta","No","Pensionado / Jubilado","Sí",0
+0,0,0,1,1,0,1,0,0,0,1,0,1,0,1,"No",0,3,3,"Divorciado","No",0,0,55,"No","Primaria completa","No","Trabajador asalariado","No",0
+0,0,0,6,6,1,6,6,4,6,6,4,6,1,1,"Sí",3,5,5,"Casado","Sí",0,0,59,"Sí","Secundaria incompleta","No","Trabajador independiente","No",1
+0,0,0,6,1,0,6,6,0,1,0,1,0,3,2,"Sí",1,1,0,"Divorciado","Sí",0,0,49,"No","Universitario completo","No","Trabajador asalariado","No",1
+0,0,0,0,0,0,6,6,0,6,6,3,0,0,0,"Sí",4,6,5,"Separado","Sí",0,0,68,"Sí","Universitario completo","No","Pensionado / Jubilado","No",0
+0,0,0,0,0,1,0,1,0,0,2,0,1,4,2,"No",3,0,1,"Casado","No",0,0,53,"No","Universitario incompleto","No","Trabajador independiente","No",0
+0,0,0,0,1,2,1,0,0,1,2,0,1,2,2,"No",5,3,3,"Divorciado","Sí",0,0,42,"Sí","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",0,0,4,"Casado","No",0,0,67,"Sí","Universitario incompleto","No","Trabajador independiente","No",0
+0,0,0,0,1,1,1,0,0,2,1,4,0,0,0,"No",2,5,4,"Soltero","No",0,2,42,"Sí","Universitario completo","No","Desempleado","No",0
+0,0,0,1,0,1,2,1,0,1,2,1,1,1,1,"No",3,2,1,"Unión libre","Sí",0,0,49,"Sí","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,0,0,1,1,1,0,0,1,0,0,0,0,"No",2,2,0,"Unión libre","No",0,0,54,"No","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,1,1,1,1,0,0,2,1,2,0,1,2,"No",0,3,3,"Casado","No",0,0,75,"Sí","Universitario incompleto","No","Pensionado / Jubilado","Sí",1
+0,0,0,0,1,1,0,0,0,0,2,3,0,4,6,"No",2,4,1,"Divorciado","No",0,0,62,"Sí","Universitario completo","No","Desempleado","No",0
+0,0,0,0,0,0,0,0,0,0,2,1,1,6,0,"No",3,2,3,"Soltero","No",0,0,47,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,"No",0,0,3,"Casado","No",0,0,70,"Sí","Técnico medio / Diplomado","No","Pensionado / Jubilado","No",0
+0,0,0,0,1,1,1,0,0,0,1,3,0,6,3,"No",5,5,3,"Casado","No",0,0,46,"No","Universitario completo","No","Trabajador asalariado","Sí",0
+1,0,0,4,4,2,1,4,0,4,1,4,1,1,1,"No",1,3,4,"Casado","Sí",0,0,47,"Sí","Universitario completo","No","Trabajador independiente","No",2
+1,0,0,6,6,1,2,2,0,6,6,0,1,1,6,"No",3,4,3,"Soltero","No",0,0,38,"Sí","Universitario completo","No","Trabajador asalariado","No",4
+0,0,0,0,0,3,0,1,5,1,5,3,1,4,0,"No",6,2,0,"Soltero","Sí",0,0,36,"No","Universitario incompleto","No","Trabajador asalariado","No",5
+0,0,0,0,0,0,1,0,1,3,5,4,4,3,4,"Sí",3,2,3,"Casado","Sí",0,0,58,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,0,0,1,1,1,0,1,1,4,0,1,1,"No",1,5,5,"Casado","Sí",0,0,40,"Sí","Universitario incompleto","No","Trabajador asalariado","No",0
+1,0,0,6,6,0,6,6,0,6,6,4,2,6,3,"Sí",2,3,3,"Divorciado","No",0,0,52,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","No",3
+0,0,0,0,1,0,1,1,1,0,1,5,0,0,1,"No",4,3,5,"Unión libre","No",0,0,43,"Sí","Universitario incompleto","No","Trabajador asalariado","Sí",0
+0,0,0,0,1,1,1,2,0,0,6,1,0,0,6,"No",3,5,4,"Casado","Sí",0,0,60,"No","Universitario completo","No","Desempleado","No",2
+0,0,0,4,1,3,2,6,0,6,3,3,0,2,1,"Sí",4,0,0,"Soltero","No",0,0,37,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",2
+0,0,0,0,0,1,1,0,0,2,4,0,0,6,0,"Sí",2,0,0,"Soltero","Sí",0,0,49,"No","Universitario completo","No","Trabajador asalariado","Sí",0
+0,0,0,0,0,0,1,0,1,1,6,3,0,6,6,"No",4,2,1,"Soltero","Sí",0,0,33,"No","Secundaria incompleta","Sí","Trabajador independiente","No",3
+0,0,0,6,6,6,6,6,6,6,6,5,0,6,6,"Sí",5,5,5,"Soltero","Sí",0,0,37,"No","Universitario completo","No","Trabajador independiente","No",2
+1,0,0,6,6,5,4,6,0,6,6,6,5,6,6,"No",4,6,6,"Soltero","No",0,0,26,"No","Secundaria completa","No","Trabajador asalariado","No",9
+0,0,0,0,0,0,0,0,1,0,1,2,0,6,0,"No",4,3,3,"Separado","No",0,0,52,"Sí","Universitario completo","Sí","Trabajador asalariado","No",1
+0,0,0,4,0,0,0,0,0,0,0,3,0,0,0,"No",3,5,4,"Divorciado","No",0,0,56,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,3,5,1,5,4,3,4,6,4,5,6,5,"Sí",2,3,4,"Divorciado","Sí",0,3,42,"Sí","Universitario incompleto","No","Trabajador asalariado","Sí",1
+0,0,0,0,0,1,2,0,0,0,1,0,0,0,0,"No",1,3,4,"Unión libre","No",0,1,23,"No","Secundaria completa","No","Trabajador independiente","No",0
+0,0,0,0,1,2,0,0,0,1,1,3,0,6,1,"No",2,1,3,"Unión libre","No",0,0,41,"No","Universitario completo","Sí","Trabajador asalariado","Sí",0
+6,4,0,6,6,6,6,6,1,6,6,6,1,6,6,"Sí",6,6,6,"Unión libre","Sí",0,0,35,"Sí","Secundaria incompleta","No","Trabajador independiente","No",12
+0,0,0,0,0,0,6,0,0,0,6,0,0,6,0,"No",2,3,0,"Divorciado","No",0,0,36,"Sí","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,0,0,0,1,0,0,6,1,3,0,0,0,"No",3,5,5,"Unión libre","No",0,0,34,"No","Primaria incompleta","No","Trabajador independiente","Sí",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",3,2,3,"Unión libre","No",0,0,26,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,0,0,0,1,0,0,0,1,0,0,4,0,"No",3,3,1,"Divorciado","No",0,0,49,"No","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","No",1
+0,0,0,0,0,0,0,0,0,0,1,4,0,6,6,"No",3,4,5,"Soltero","No",0,0,45,"No","Primaria completa","No","Trabajador asalariado","No",0
+0,0,0,1,1,1,1,6,1,1,6,4,1,6,6,"Sí",4,3,4,"Soltero","Sí",1,0,34,"Sí","Secundaria completa","Sí","Trabajador independiente","No",2
+0,0,1,4,5,1,3,5,0,3,6,2,0,0,6,"No",2,5,5,"Soltero","No",0,0,33,"No","Universitario incompleto","No","Desempleado","No",4
+0,0,0,0,0,0,0,0,0,0,0,2,0,1,0,"No",0,3,3,"Casado","No",0,0,34,"No","Secundaria completa","No","Trabajador asalariado","No",0
+0,0,0,0,1,0,1,1,0,1,6,3,1,6,2,"No",3,2,0,"Casado","No",0,0,67,"Sí","Universitario incompleto","Sí","Pensionado / Jubilado","No",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"No",0,3,0,"Divorciado","No",0,0,53,"No","Primaria incompleta","No","Trabajador independiente","No",0
+0,0,0,1,1,0,1,1,0,1,2,0,0,2,4,"Sí",2,5,5,"Soltero","Sí",0,0,39,"Sí","Posgrado (Maestría / Doctorado)","Sí","Trabajador asalariado","No",0
+0,0,0,1,0,1,0,0,1,0,6,6,0,0,6,"No",2,6,4,"Unión libre","Sí",0,0,46,"No","Primaria completa","Sí","Trabajador independiente","No",0
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,"No",0,0,0,"Unión libre","No",0,0,26,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,2,2,0,1,2,1,2,2,4,1,1,1,"No",4,3,2,"Soltero","No",1,2,37,"No","Universitario completo","No","Trabajador asalariado","No",2
+0,0,0,1,1,1,3,6,0,1,6,3,0,0,6,"No",0,6,3,"Separado","Sí",0,1,53,"Sí","Secundaria completa","Sí","Trabajador independiente","No",0
+0,0,0,0,0,1,6,0,0,0,0,2,0,0,0,"Sí",3,6,0,"Soltero","No",0,0,35,"No","Primaria completa","Sí","Desempleado","No",0
+1,1,1,2,3,3,1,0,1,6,6,6,6,0,6,"No",4,6,3,"Divorciado","Sí",0,0,27,"No","Universitario completo","No","Trabajador independiente","No",4
+0,0,0,1,0,0,1,0,1,1,1,3,0,4,0,"Sí",3,3,1,"Divorciado","No",0,0,43,"No","Universitario completo","No","Trabajador asalariado","No",3
+0,0,0,0,3,0,3,0,0,0,3,3,0,0,6,"Sí",1,0,0,"Casado","No",0,0,59,"No","Secundaria incompleta","No","Trabajador independiente","No",0
+0,0,0,0,0,0,0,1,0,1,1,1,1,0,0,"No",4,1,0,"Casado","No",0,1,47,"Sí","Secundaria incompleta","No","Trabajador independiente","Sí",2
+0,0,0,1,0,0,1,1,0,1,1,4,0,0,0,"Sí",2,5,3,"Soltero","Sí",0,0,40,"No","Secundaria incompleta","Sí","Trabajador independiente","No",0
+0,0,0,0,1,1,0,0,2,2,0,5,2,0,0,"No",2,5,4,"Separado","No",0,0,63,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,0,1,0,1,1,0,1,1,3,0,0,1,"No",2,6,5,"Soltero","No",0,0,60,"No","Secundaria completa","Sí","Trabajador asalariado","No",0
+0,0,0,0,2,1,1,1,0,2,1,3,0,2,1,"No",5,3,3,"Unión libre","No",0,0,39,"No","Técnico medio / Diplomado","No","Trabajador independiente","No",1
+0,0,0,0,0,0,0,0,0,0,1,1,1,6,0,"No",6,3,2,"Casado","Sí",0,0,50,"No","Universitario incompleto","Sí","Trabajador independiente","Sí",0
+0,0,0,0,0,2,0,1,0,0,1,0,0,4,0,"No",1,1,0,"Casado","No",0,0,51,"Sí","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","Sí",0
+0,0,0,0,6,0,0,6,0,0,6,6,0,6,6,"Sí",5,6,3,"Casado","No",0,0,58,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,4,1,1,4,3,0,3,4,3,3,6,1,"Sí",3,5,4,"Soltero","Sí",0,0,41,"No","Técnico medio / Diplomado","No","Trabajador asalariado","No",2
+0,0,0,0,0,3,0,0,0,0,1,3,4,3,1,"No",1,4,1,"Casado","Sí",0,2,52,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",1
+0,0,0,5,4,2,2,6,2,5,5,3,1,0,1,"Sí",4,3,5,"Soltero","Sí",0,0,27,"Sí","Universitario completo","No","Trabajador independiente","No",0
+0,0,1,3,4,2,4,6,1,4,6,3,2,3,1,"Sí",5,5,5,"Casado","Sí",0,0,44,"No","Primaria completa","Sí","Trabajador asalariado","No",1
+0,0,0,0,0,1,0,0,0,0,3,0,0,0,1,"Sí",0,1,1,"Divorciado","Sí",0,0,56,"No","Universitario completo","No","Trabajador independiente","No",0
+0,0,0,0,0,1,0,0,0,0,1,0,1,1,1,"No",3,0,1,"Unión libre","No",0,0,42,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,0,1,1,0,6,2,6,6,6,0,6,0,"Sí",4,6,3,"Soltero","No",0,1,34,"No","Universitario completo","No","Trabajador independiente","Sí",0
+2,0,2,6,6,6,3,6,0,6,6,4,0,6,0,"Sí",5,3,4,"Soltero","Sí",0,1,39,"Sí","Universitario incompleto","No","Trabajador independiente","No",7
+0,0,0,1,6,1,1,3,1,1,6,0,6,6,4,"Sí",2,4,3,"Casado","Sí",0,1,37,"No","Universitario completo","No","Trabajador asalariado","No",0
+0,0,0,6,6,3,6,6,5,6,4,3,0,3,6,"No",3,3,3,"Divorciado","No",0,1,61,"Sí","Universitario completo","No","Trabajador asalariado","Sí",0
+0,0,0,0,0,1,1,1,0,0,1,3,0,6,0,"Sí",3,2,2,"Soltero","Sí",0,0,39,"No","Posgrado (Maestría / Doctorado)","No","Trabajador asalariado","No",0
+0,0,0,1,3,3,1,4,0,3,3,4,1,3,3,"No",3,6,3,"Soltero","Sí",1,0,56,"No","Secundaria completa","No","Trabajador asalariado","No",1
+0,0,0,1,0,0,1,2,0,1,6,3,1,6,1,"No",1,3,3,"Soltero","No",0,0,37,"No","Universitario incompleto","No","Trabajador asalariado","Sí",0
+0,0,0,1,0,0,1,1,1,1,4,3,0,0,1,"No",4,3,2,"Casado","Sí",0,0,45,"No","Técnico medio / Diplomado","No","Trabajador asalariado","No",1
+0,0,0,1,6,1,0,3,6,6,2,5,0,0,1,"No",5,5,5,"Casado","Sí",0,0,31,"Sí","Secundaria completa","No","Trabajador asalariado","No",1
+0,0,0,0,0,0,2,5,0,0,5,0,6,0,3,"Sí",4,6,3,"Divorciado","Sí",4,6,28,"No","Secundaria incompleta","No","Desempleado","No",0
+0,0,0,0,1,0,1,1,0,6,1,3,6,0,0,"No",3,3,3,"Unión libre","No",0,0,30,"No","Universitario completo","No","Trabajador asalariado","Sí",0
+3,0,0,6,2,0,1,6,0,4,6,6,0,6,6,"No",4,5,4,"Soltero","No",1,0,28,"No","Universitario completo","No","Trabajador asalariado","No",6
+0,0,0,0,4,0,4,6,0,6,6,0,0,6,0,"No",0,6,6,"Separado","No",0,0,45,"No","Posgrado (Maestría / Doctorado)","No","Trabajador independiente","No",1
+1,0,1,6,6,1,6,6,0,6,6,6,6,0,6,"Sí",3,0,3,"Soltero","Sí",1,1,23,"No","Secundaria completa","No","Trabajador asalariado","No",10
+0,0,1,6,6,1,6,0,0,6,6,5,1,0,0,"Sí",3,6,4,"Separado","Sí",0,0,40,"No","Universitario completo","Sí","Trabajador asalariado","No",6
+3,1,3,5,5,4,1,1,2,6,5,5,2,4,0,"No",5,5,4,"Divorciado","Sí",3,3,50,"Sí","Secundaria incompleta","No","Desempleado","No",5
+0,0,0,2,1,0,1,3,1,1,5,4,2,6,6,"No",3,3,5,"Soltero","No",0,0,30,"Sí","Universitario incompleto","No","Trabajador independiente","Sí",0
+0,0,0,6,4,0,4,1,0,6,6,3,0,0,0,"Sí",3,5,4,"Divorciado","No",0,3,57,"Sí","Universitario completo","No","Trabajador asalariado","Sí",0

@@ -1,0 +1,357 @@
+---
+title: "Limpieza"
+author: "Esteban Navarro"
+date: "2025-12-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Librerías
+
+```{r}
+#install.packages("googlesheets4")
+#install.packages("tidyverse")
+#install.packages("cluster")
+#install.packages("fastDummies")
+#install.packages("FactoMineR")
+#install.packages("factoextra")
+#install.packages("caret")
+#install.packages("reticulate")
+#install.packages("psych")
+#install.packages("ggcorrplot")
+#install.packages("janitor")
+#install.packages("summarytools")
+#install.packages("cowplot")
+#install.packages("downloader")
+```
+
+```{r, warnings=FALSE, message=FALSE}
+library(googlesheets4)
+library(tidyverse)
+library(fastDummies)
+library(FactoMineR)
+library(factoextra)
+library(cluster)
+library(dendextend)
+library(caret)
+library(reticulate)
+library(htmltools)
+library(IRdisplay)
+```
+
+```{r, warnings=FALSE, message=FALSE}
+library(tidyverse)
+library(fastDummies)
+library(FactoMineR)
+library(factoextra)
+library(cluster)
+library(dendextend)
+library(caret)
+library(reticulate)
+library(htmltools)
+library(IRdisplay)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+library(psych)
+library(ggcorrplot)
+library(janitor)
+library(summarytools)
+library(broom)
+
+library(tidyverse)
+source("../funciones/leer_df_final.R")
+library(lsr)
+```
+
+## Carga de datos
+
+```{r}
+datos_crudos <- read.csv("../data/datos_crudos.csv", stringsAsFactors = FALSE)
+```
+
+
+## Renombrar datos
+
+```{r}
+df <- datos_crudos %>%
+  rename(
+
+    fecha = `Marca temporal`,
+    salud_fisica = `1. Mi salud física afecta mi estado de ánimo.`,
+    maltrato_emocional = `2. Durante la niñez y adolescencia, viví experiencias en las que fui maltratado o humillado emocionalmente.`,
+    castigo_fisico = `3. Durante la niñez y adolescencia, recibí castigos físicos o golpes que me causaron daño o miedo.`,
+    abuso_sexual = `4. Durante la niñez y adolescencia, fui víctima de contacto sexual forzado o inapropiado por parte de alguien mayor.`,
+    ocultar_emociones = `5. Siento que debo ocultar mis emociones para no parecer débil.`,
+    dificultad_pedir_ayuda = `6. Me cuesta pedir ayuda cuando enfrento una dificultad.`,
+    guarda_sentimientos = `7. Cuando estoy triste o dolido, prefiero guardármelo para mí.`,
+
+    # Sección 2: Frecuencia en los últimos 7 días
+    sin_motivacion = `1. ¿Cuántas veces en los últimos 7 días, me he sentido sin motivación para realizar mis actividades?`,
+    preocupado = `2. ¿Cuántas veces en los últimos 7 días, me he sentido preocupado?`,
+    sin_proposito = `3. ¿Cuántas veces en los últimos 7 días, he sentido que la vida ha perdido su sentido y propósito?`,
+    no_reconocer_logros = `4. ¿Cuántas veces en los últimos 7 días, me ha costado reconocer mis logros y aspectos positivos?`,
+    incapaz_solucionar = `5. ¿Cuántas veces en los últimos 7 días, he pensado que soy incapaz de encontrar una solución a mis problemas?`,
+    intento_autolesion = `6. ¿Cuántas veces en los últimos 7 días, he intentado hacerme daño?`,
+    plan_autolesion = `7. ¿Cuántas veces en los últimos 7 días, he hecho planes para hacerme daño?`,
+    autolesion_fisica = `8. ¿Cuántas veces en los últimos 7 días, me he hecho daño físico de manera intencional (por ejemplo, cortarme, golpearme o provocarme dolor)?`,
+    conduccion_temeraria = `9. ¿Cuántas veces en los últimos 7 días, he conducido de manera arriesgada o sin cuidado por mi seguridad?`,
+    soledad = `10. ¿Cuántas veces en los últimos 7 días, me he sentido solo o sin apoyo?`,
+    conflicto_familiar = `11. ¿Cuántas veces en los últimos 7 días, he tenido conflictos o discusiones en mi familia?`,
+    dificultad_economica = `12. ¿Cuántas veces en los últimos 7 días, he tenido dificultades económicas que me preocupan?`,
+    exigencia_academica_laboral = `13. ¿Cuántas veces en los últimos 7 días, tuve muchas exigencias académicas o laborales`,
+    descontrol_drogas = `14. ¿Cuántas veces en los últimos 7 días, he sentido que pierdo el control al consumir algunas drogas?`,
+    abuso_alcohol = `15.  ¿Cuántas veces en los últimos 7 días, he abusado del consumo de bebidas alcohólicas?`,
+    descontrol_enojo = `16. ¿Cuántas veces en los últimos 7 días, cuando me enojo o me altero, siento que pierdo el control de mis reacciones?`,
+
+    # Sección 3: Historial y situación actual (Sí/No)
+    medicamento_psiquiatrico = `1. Alguna vez en mi vida he tomado medicamentos psiquiátricos (ansiolíticos, antidepresivos, etc.)`,
+    discapacidad_fisica = `2. Tengo alguna discapacidad física (por ejemplo, pérdida de audición o amputación)`,
+    suicidio_familiar = `3. ¿Alguna persona de mi familia ha intentado quitarse la vida o se ha suicidado?`,
+    ruptura_reciente = `4. En el último mes, he pasado por una ruptura o separación de pareja que me ha impactado emocionalmente.`,
+    crisis_pareja_actual = `5. Actualmente estoy pasando por una crisis en mi relación de pareja.`,
+    medidas_cautelares = `6. Tengo vigentes medidas cautelares por violencia doméstica u otras razones legales.`,
+
+    # Sección 4: Ideación (Escala)
+    roberts_pensado_muerte = `1. Pensé en la muerte.`,
+    roberts_mejor_sin_mi = `2. Mi familia y mis amigos estarían mejor si yo estuviera muerto.`,
+    roberts_pensado_matarme = `3. Pensé en matarme.`,
+    roberts_plan_suicida = `4. Me mataría si encontrara o tuviera la manera de hacerlo.`,
+
+    # Sección 5: Datos demográficos y de grupo
+    edad = `1. Edad (número de años cumplidos)`,
+    escolaridad = `2. Grado de escolaridad`,
+    estado_civil = `3. Estado civil`,
+    ocupacion = `4. Ocupación`,
+    orientacion_sexual = `5. Orientación sexual`,
+    provincia = `6. Provincia donde vive`,
+    canton = `7. Cantón donde vive`,
+    grupo_wem = `Grupo al que asiste de Wem`,
+    sesiones_cumplidas = `Cantidad de sesiones cumplidas (en número)`,
+    dia = `Día de la semana al que más asiste al grupo`
+  )
+```
+
+
+```{r}
+# 1. Definimos las categorías exactas que aparecen en la imagen
+categorias_validas <- c(
+  "Estudiante",
+  "Trabajador asalariado",
+  "Trabajador independiente",
+  "Desempleado",
+  "Pensionado / Jubilado"
+)
+
+# 2. Aplicamos la limpieza
+df <- df %>%
+  mutate(ocupacion = fct_other(
+    ocupacion,
+    keep = categorias_validas,  # Mantiene solo estas
+    other_level = "Otro"        # Todo lo demás se etiqueta como "Otro"
+  ))
+
+# Verificamos el resultado
+table(df$ocupacion)
+```
+
+```{r}
+glimpse(df)
+```
+
+## Recodificación
+
+```{r}
+# 1. Definir los grupos de variables para cada tipo de recodificación
+vars_freq <- c(
+  'salud_fisica', 'maltrato_emocional', 'castigo_fisico', 'abuso_sexual',
+  'ocultar_emociones', 'dificultad_pedir_ayuda', 'guarda_sentimientos'
+)
+
+vars_dias <- c(
+  'sin_motivacion', 'preocupado', 'sin_proposito', 'no_reconocer_logros',
+  'incapaz_solucionar', 'intento_autolesion', 'plan_autolesion', 'autolesion_fisica',
+  'conduccion_temeraria', 'soledad', 'conflicto_familiar', 'dificultad_economica',
+  'exigencia_academica_laboral', 'descontrol_drogas', 'abuso_alcohol', 'descontrol_enojo'
+)
+
+vars_roberts <- c(
+  'roberts_pensado_muerte', 'roberts_mejor_sin_mi',
+  'roberts_pensado_matarme', 'roberts_plan_suicida'
+)
+
+# 2. Aplicar la recodificación usando mutate() y across()
+df <- df %>%
+  mutate(
+    # Recodificación para la Sección 2 (Escala de Frecuencia General)
+    across(all_of(vars_freq), ~case_when(
+      . == "Nunca"         ~ 0,
+      . == "Casi nunca"    ~ 1,
+      . == "Rara vez"      ~ 2,
+      . == "A veces"       ~ 3,
+      . == "Con frecuencia"~ 4,
+      . == "Casi siempre"  ~ 5,
+      . == "Siempre"       ~ 6,
+      TRUE                ~ NA_real_ # Por si hay algún valor inesperado
+    )),
+
+    # Recodificación para la Sección 3 (Frecuencia en los últimos 7 días)
+    across(all_of(vars_dias), ~case_when(
+      . == "Nunca"         ~ 0,
+      . == "1 - 2 días"    ~ 1,
+      . == "3 días"        ~ 2,
+      . == "4 días"        ~ 3,
+      . == "5 días"        ~ 4,
+      . == "6 días"        ~ 5,
+      . == "Todos los días"~ 6,
+      TRUE                ~ NA_real_
+    )),
+
+    # Recodificación para la Sección 5 (Escala Roberts - Frecuencia en la última semana)
+    across(all_of(vars_roberts), ~case_when(
+      . == "0 días"       ~ 0,
+      . == "1-2 días"      ~ 1,
+      . == "3-4 días"      ~ 2,
+      . == "5-7 días"      ~ 3,
+      TRUE                ~ NA_real_
+    ))
+  )
+```
+
+```{r}
+df <- df %>%
+  mutate(
+    EIS_Roberts = rowSums(select(., all_of(vars_roberts)), na.rm = TRUE)
+  )
+```
+
+```{r}
+df <- df %>%
+  mutate(
+    EIS_Cat = case_when(
+      EIS_Roberts <= 5          ~ "Bajo",
+      EIS_Roberts >= 6 & EIS_Roberts <= 8 ~ "Medio",
+      EIS_Roberts >= 9          ~ "Alto",
+      TRUE                      ~ NA_character_ # Manejo de casos inesperados (como NAs)
+    )
+  )
+```
+
+```{r}
+glimpse(df)
+```
+
+## Formato de variables
+
+```{r}
+df <- df %>%
+  mutate(across(where(is.character), as.factor))
+```
+
+
+```{r}
+str(df)
+```
+
+```{r}
+df_final <- df %>%
+  select(EIS_Roberts,
+         sesiones_cumplidas,edad, salud_fisica, maltrato_emocional, castigo_fisico,
+         abuso_sexual, ocultar_emociones, dificultad_pedir_ayuda,
+         guarda_sentimientos, sin_motivacion, preocupado, sin_proposito,
+         no_reconocer_logros,incapaz_solucionar, intento_autolesion,
+         plan_autolesion, autolesion_fisica, conduccion_temeraria, soledad,
+         conflicto_familiar, dificultad_economica, exigencia_academica_laboral,
+         descontrol_drogas, abuso_alcohol, descontrol_enojo,
+         medicamento_psiquiatrico, discapacidad_fisica, suicidio_familiar,
+         ruptura_reciente, crisis_pareja_actual, medidas_cautelares, 
+         escolaridad, estado_civil, ocupacion)
+```
+
+```{r}
+str(df_final)
+```
+
+## Datos escalados
+
+```{r}
+# 3. Identificar las columnas numéricas y factores en este nuevo conjunto
+vars_numericas <- df_final %>%
+  select(where(is.numeric)) %>%
+  names()
+
+vars_factores <- df_final %>%
+  select(where(is.factor)) %>%
+  names()
+
+# 4. Crear variables dummy a partir de TODOS los factores (incluyendo EIS_Cat)
+df_dummies <- dummy_cols(
+  df_final,
+  select_columns = vars_factores,
+  remove_selected_columns = TRUE) # Elimina las columnas factor originales
+```
+
+```{r}
+# 5. Aislar y escalar TODAS las variables numéricas (incluyendo EIS_Roberts)
+datos_numericos <- df_final %>% select(all_of(vars_numericas))
+datos_escalados <- as.data.frame(scale(datos_numericos))
+
+# 6. Unir los datos numéricos escalados con las nuevas variables dummy
+#    Primero, nos quedamos solo con las columnas dummy que se crearon
+df_dummies_solo <- df_dummies %>% select(-all_of(vars_numericas))
+
+#    Finalmente, los unimos
+df_escalado <- bind_cols(datos_escalados, df_dummies_solo)
+```
+
+```{r}
+df_escalado <- df_escalado %>%
+  rename(
+    # Escolaridad
+    posgrado = `escolaridad_Posgrado (Maestría / Doctorado)`,
+    prim_completa = `escolaridad_Primaria completa`,
+    prim_incompleta = `escolaridad_Primaria incompleta`,
+    sec_completa = `escolaridad_Secundaria completa`,
+    sec_incompleta = `escolaridad_Secundaria incompleta`,
+    tecnico = `escolaridad_Técnico medio / Diplomado`,
+    u_completo = `escolaridad_Universitario completo`,
+    u_incompleto = `escolaridad_Universitario incompleto`,
+
+    # Estado Civil
+    casado = `estado_civil_Casado`,
+    divorciado = `estado_civil_Divorciado`,
+    separado = `estado_civil_Separado`,
+    soltero = `estado_civil_Soltero`,
+    union_libre = `estado_civil_Unión libre`,
+
+    # Ocupación
+    desempleado = `ocupacion_Desempleado`,
+    asalariado = `ocupacion_Trabajador asalariado`,
+    independiente = `ocupacion_Trabajador independiente`)
+```
+
+```{r}
+str(df_escalado)
+```
+
+# Guardar datos
+
+```{r}
+write.csv(df_final, "../data/df_final.csv", row.names = FALSE)
+write.csv(df_escalado, "../data/df_escalado.csv", row.names = FALSE)
+```
+
+```{r}
+saveRDS(df_final, "../data/df_final.rds")
+```
+
+
+
+
+
+

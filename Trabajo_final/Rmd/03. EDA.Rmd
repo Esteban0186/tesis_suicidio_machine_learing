@@ -1,0 +1,315 @@
+---
+title: "EDA"
+author: "Esteban Navarro"
+date: "2025-12-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Librerías
+
+```{r, warning= FALSE, message=FALSE}
+library(tidyverse)
+source("../funciones/leer_df_filtrado.R")
+library(lsr)
+library(tidyverse)
+library(visdat)
+library(patchwork)
+library(ggcorrplot)
+library(corrplot)
+```
+
+# Carga de los data sets
+
+```{r}
+df_filtrado <- leer_df_final("../data/df_filtrado.csv")
+```
+
+```{r}
+glimpse(df_filtrado)
+```
+
+```{r}
+library(dplyr)
+
+df_filtrado <- df_filtrado %>%
+  rename(
+    `Plan de autolesion`             = plan_autolesion,
+    `Episodio de autolesion fisica`           = autolesion_fisica,
+    `Intento de autolesion`          = intento_autolesion,
+    `Sentirse sin proposito`               = sin_proposito,
+    `Incapacidad solucionar`          = incapaz_solucionar,
+    `Conflicto familiares`          = conflicto_familiar,
+    `Sin motivacion`              = sin_motivacion,
+    `Soledad`                     = soledad,
+    `Conduccion temeraria`        = conduccion_temeraria,
+    `Dificultad para reconocer logros`         = no_reconocer_logros,
+    `Preocupación`                  = preocupado,
+    `Tendencia a ocultar emociones`           = ocultar_emociones,
+    `Descontrol del enojo`            = descontrol_enojo,
+    `Elevada exigencia academica laboral` = exigencia_academica_laboral,
+    `Dificultades economicas`        = dificultad_economica,
+    `Ruptura reciente`            = ruptura_reciente,
+    `Maltrato emocional en la infancia`          = maltrato_emocional,
+    `Guardarse sentimientos`         = guarda_sentimientos,
+    `Dificultad para pedir ayuda`      = dificultad_pedir_ayuda,
+    `Estado civil`                = estado_civil,
+    `Vive una crisis pareja actual`        = crisis_pareja_actual,
+    `Descontrol drogas`           = descontrol_drogas,
+    `Abuso de alcohol`               = abuso_alcohol,
+    `Edad`                        = edad,
+    `Consumo de medicamento psiquiatrico`    = medicamento_psiquiatrico,
+    `Escolaridad`                 = escolaridad,
+    `Tiene medidas cautelares`          = medidas_cautelares,
+    `Ocupacion`                   = ocupacion,
+    `Suicidio de un familiar`           = suicidio_familiar,
+    `Escala de ideación suicida (EIS)` = EIS_Roberts
+  )
+
+names(df_filtrado)
+
+```
+
+
+
+# Rangos
+
+```{r}
+summary(df_filtrado)
+```
+
+```{r}
+library(dplyr)
+
+tabla_resumen <- df_filtrado %>%
+  summarise(across(
+    where(is.numeric),
+    list(
+      media   = ~ mean(.x, na.rm = TRUE),
+      mediana = ~ median(.x, na.rm = TRUE),
+      sd      = ~ sd(.x, na.rm = TRUE)
+    ),
+    .names = "{.col}__{.fn}"
+  )) %>%
+  tidyr::pivot_longer(
+    cols = everything(),
+    names_to = c("variable", "estadistico"),
+    names_sep = "__",
+    values_to = "valor"
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = estadistico,
+    values_from = valor
+  ) %>%
+  arrange(variable)
+
+tabla_resumen
+
+```
+
+
+## EIS Roberts
+
+```{r}
+p_target <- ggplot(df_filtrado, aes(x = EIS_Roberts)) +
+  # CORRECCIÓN: Usamos after_stat(density) en lugar de ..density..
+  geom_histogram(aes(y = after_stat(density)), binwidth = 1, fill = "#1f77b4", color = "white", alpha = 0.7) +
+  
+  # Nota: Para líneas, ahora se prefiere usar 'linewidth' en vez de 'size'
+  geom_density(color = "red", linewidth = 1) + 
+  geom_vline(aes(xintercept = mean(EIS_Roberts, na.rm = TRUE)), color = "black", linetype = "dashed", linewidth = 1) +
+  
+  labs(title = "Distribución de Ideación Suicida (EIS Roberts)",
+       subtitle = "Línea Roja = Densidad | Línea Punteada = Promedio",
+       x = "Puntaje Roberts",
+       y = "Densidad") +
+  theme_minimal()
+
+print(p_target)
+```
+
+```{r}
+summary(df_filtrado$EIS_Roberts)
+```
+
+
+# Numéricas
+
+```{r, fig.width=10, fig.height=8}
+vars_numericas <- df_filtrado %>%
+  select(where(is.numeric), -EIS_Roberts) %>%
+  names()
+
+# Vamos a graficar las primeras 9 para no saturar la pantalla
+# (Si quieres ver todas, cambia el slice o quítalo)
+mis_vars_num <- vars_numericas[1:min(21, length(vars_numericas))] 
+
+df_filtrado %>%
+  select(all_of(mis_vars_num)) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valor") %>%
+  ggplot(aes(x = Valor)) +
+  geom_histogram(fill = "steelblue", color = "white", bins = 15) +
+  facet_wrap(~Variable, scales = "free") + # 'free' permite que cada eje se ajuste a sus datos
+  labs(title = "Distribución de Variables Numéricas (Top 9)",
+       y = "Frecuencia") +
+  theme_light()
+```
+
+# Categóricas 
+
+```{r, fig.height=10}
+vars_categoricas <- df_filtrado %>%
+  select(where(is.factor) | where(is.character)) %>%
+  names()
+
+# Seleccionamos hasta 9 para visualizar (o las que gustes)
+mis_vars_cat <- vars_categoricas[1:min(9, length(vars_categoricas))]
+
+df_filtrado %>%
+  select(all_of(mis_vars_cat)) %>%
+  # --- LA SOLUCIÓN ESTÁ AQUÍ ---
+  # Convertimos todo a texto simple para que pivot_longer no se queje
+  mutate(across(everything(), as.character)) %>% 
+  # -----------------------------
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Categoria") %>%
+  ggplot(aes(x = fct_infreq(Categoria))) + 
+  geom_bar(fill = "coral", alpha = 0.8) +
+  facet_wrap(~Variable, scales = "free", ncol = 2) +
+  coord_flip() + 
+  labs(title = "Frecuencia de Variables Categóricas",
+       x = "Categoría",
+       y = "Cantidad de Participantes") +
+  theme_light()
+```
+
+
+# Bivariado 
+
+```{r, fig.width=10, fig.height=12}
+df_filtrado %>%
+  select(where(is.factor) | where(is.character), EIS_Roberts) %>%
+  # Truco: Convertimos todo a texto para evitar error de factores ordenados vs no ordenados
+  mutate(across(-EIS_Roberts, as.character)) %>%
+  pivot_longer(cols = -EIS_Roberts, names_to = "Variable", values_to = "Categoria") %>%
+  # Filtramos NAs por si acaso para limpiar el gráfico
+  filter(!is.na(Categoria)) %>%
+  
+  ggplot(aes(x = reorder(Categoria, EIS_Roberts, FUN = median), y = EIS_Roberts)) +
+  geom_boxplot(aes(fill = Variable), alpha = 0.7, show.legend = FALSE, outlier.color = "red") +
+  facet_wrap(~Variable, scales = "free", ncol = 2) +
+  coord_flip() + # Volteamos para leer mejor las etiquetas
+  labs(title = "Relación entre Categorías y Riesgo Suicida",
+       subtitle = "Ordenado por mediana de riesgo (EIS Roberts)",
+       x = "Categoría",
+       y = "Puntaje EIS Roberts") +
+  theme_light()
+```
+
+```{r}
+# Seleccionamos numéricas (excluyendo la propia target del eje X)
+mis_vars_num <- df_filtrado %>%
+  select(where(is.numeric)) %>%
+  names() %>%
+  setdiff("EIS_Roberts") # Quitamos la target de la lista de predictoras
+
+# Graficamos las primeras 9 variables más importantes (o todas si prefieres)
+# Si quieres ver todas, quita el [1:9]
+vars_a_graficar <- mis_vars_num[1:min(21, length(mis_vars_num))]
+
+df_filtrado %>%
+  select(all_of(vars_a_graficar), EIS_Roberts) %>%
+  pivot_longer(cols = -EIS_Roberts, names_to = "Variable", values_to = "Puntaje_Predictor") %>%
+  
+  ggplot(aes(x = Puntaje_Predictor, y = EIS_Roberts)) +
+  # Usamos Jitter (ruido) porque tus datos son números enteros y se enciman
+  geom_jitter(alpha = 0.3, height = 0.5, width = 0.2, color = "steelblue") + 
+  # Agregamos línea de tendencia suavizada
+  geom_smooth(method = "lm", color = "red", se = FALSE) + 
+  facet_wrap(~Variable, scales = "free") +
+  labs(title = "Correlación Visual: Variables Numéricas vs Riesgo Suicida",
+       subtitle = "La línea roja indica la tendencia",
+       y = "Puntaje EIS Roberts",
+       x = "Puntaje de la Variable") +
+  theme_minimal()
+```
+
+# Matriz de correlación
+
+```{r, fig.width= 12, fig.height=10}
+# 1. Calcular la matriz (igual que antes)
+matriz_correlacion <- df_filtrado %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs", method = "pearson")
+
+# 2. Crear tu paleta de colores personalizada
+# Definimos el degradado: Azul Acero -> Blanco -> Tomate
+mis_colores <- colorRampPalette(c("steelblue", "white", "tomato"))(200)
+
+# 3. Visualizar
+corrplot(matriz_correlacion,
+         method = "color",        
+         type = "lower",          
+         addCoef.col = "black",   # Números en negro para que se lean bien
+         number.cex = 0.6,        
+         tl.col = "black",        
+         tl.srt = 45,             
+         diag = FALSE,            
+         col = mis_colores,       # <--- AQUÍ APLICAMOS TUS COLORES
+         title = "Matriz de Correlaciones: Factores de Riesgo",
+         mar = c(0,0,2,0))       # Margen para que no se corte el título             # Tamaño del texto de las etiquetas (nombres de variables)
+```
+
+# Matriz de correlación de SPEARMAN
+
+```{r, fig.width= 12, fig.height=10}
+# 1. Calcular la matriz con SPEARMAN
+matriz_correlacion <- df_filtrado %>%
+  select(where(is.numeric)) %>%
+  # CAMBIO CLAVE AQUÍ: method = "spearman"
+  cor(use = "complete.obs", method = "spearman")
+
+# 2. Crear tu paleta de colores personalizada (igual que antes)
+mis_colores <- colorRampPalette(c("steelblue", "white", "tomato"))(200)
+
+# 3. Visualizar
+corrplot(matriz_correlacion,
+         method = "color",        
+         type = "lower",          
+         addCoef.col = "black",   
+         number.cex = 0.6,        
+         tl.col = "black",        
+         tl.srt = 45,             
+         diag = FALSE,            
+         col = mis_colores,       
+         # Actualizamos el título para ser precisos
+         title = "Matriz de Correlaciones (Spearman): Factores de Riesgo",
+         mar = c(0,0,2,0))
+```
+
+
+```{r}
+# ==============================================================================
+# SCATTERPLOT: EDAD vs EIS ROBERTS
+# ==============================================================================
+
+ggplot(df_filtrado, aes(x = edad, y = EIS_Roberts)) +
+  # Usamos 'jitter' para separar los puntos que se enciman
+  geom_jitter(color = "steelblue", alpha = 0.7, size = 2, width = 0.3, height = 0.3) +
+  
+  # Agregamos la línea de tendencia lineal (color tomato)
+  geom_smooth(method = "lm", color = "tomato", se = TRUE, fill = "tomato", alpha = 0.2) +
+  
+  # Etiquetas y Títulos
+  labs(title = "Relación entre Edad y Riesgo Suicida",
+       subtitle = "Tendencia lineal (Rojo) sobre dispersión de casos (Azul)",
+       x = "Edad (años)",
+       y = "Escala de Ideación Suicida (Roberts)") +
+  
+  # Tema limpio
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"))
+```
+

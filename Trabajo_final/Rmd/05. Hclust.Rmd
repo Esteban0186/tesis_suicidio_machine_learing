@@ -1,0 +1,968 @@
+---
+title: "Análisis de Clúster Jerárquico (HCPC)"
+author: "Esteban Navarro"
+date: "2026-01-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(PCAmixdata)
+library(cluster) # Para AGNES y métricas de validación
+library(factoextra) # Para visualizaciones elegantes de clústeres
+source("../funciones/inercia_intraclase.R")
+library(dendextend)
+library(fmsb)
+library(tidyverse)
+source("../funciones/spider_plot.R")
+library(car)
+source("../funciones/anova.R")
+library(kableExtra)
+library(rstatix)
+source("../funciones/prueba_fisher.R")
+library(tidymodels)
+source("../funciones/leer_df_filtrado.R")
+```
+
+
+```{r setup, include=FALSE}
+# Cargamos el objeto con un solo comando
+res.final <- readRDS("../data/resultado_pcamix_final.rds")
+```
+
+```{r}
+res.final
+```
+
+```{r}
+dim(res.final$ind$coord)
+```
+
+
+```{r}
+# Extraemos las coordenadas directamente
+coords_cluster <- res.final$ind$coord
+head(coords_cluster)
+```
+# Distancia Mahalanobis 
+
+```{r}
+# Necesitaremos la matriz de covarianza para Mahalanobis
+S <- cov(coords_cluster)
+centroide_general <- colMeans(coords_cluster)
+
+# Función para calcular matriz de distancia Mahalanobis manualmente
+dist_mahalanobis <- function(x) {
+  n <- nrow(x)
+  d <- matrix(0, n, n)
+  for(i in 1:(n-1)) {
+    for(j in (i+1):n) {
+      diff <- x[i,] - x[j,]
+      d[i,j] <- d[j,i] <- sqrt(t(diff) %*% solve(S) %*% diff)
+    }
+  }
+  return(as.dist(d))
+}
+```
+
+
+# Agrupaciones y distancias
+
+```{r}
+# -------------------------------------------------------------------------
+# 1. RANKING EXHAUSTIVO: TODAS LAS COMBINACIONES VÁLIDAS
+# -------------------------------------------------------------------------
+
+# Lista ampliada de métodos
+distancias_ext <- c("euclidean", "maximum", "manhattan", "canberra", "minkowski", "mahalanobis")
+
+agregaciones_ext <- c("ward.D", "ward.D2", "complete", "average", "mcquitty", "median", "centroid", "single")
+
+ranking_completo <- data.frame()
+
+for (d in distancias_ext) {
+  
+  # LÓGICA DE DISTANCIA: Seleccionamos la función correcta según el método
+  if (d == "mahalanobis") {
+    matriz_dist <- dist_mahalanobis(coords_cluster)
+  } else {
+    matriz_dist <- dist(coords_cluster, method = d)
+  }
+  
+  for (a in agregaciones_ext) {
+    # IMPORTANTE: Estos 4 métodos requieren métricas de tipo euclídeo (incluye Mahalanobis)
+    # Por rigor, Ward solo se usa con Euclídea pura, pero Mahalanobis es aceptable
+    metodos_especificos <- c("ward.D", "ward.D2", "centroid", "median")
+    
+    if ((a %in% metodos_especificos) && (d != "euclidean" && d != "mahalanobis")) next
+    
+    try({
+      modelo <- hclust(matriz_dist, method = a)
+      grupos <- cutree(modelo, k = 3)
+      
+      inercia_val <- inercia_intraclase(coords_cluster, grupos)
+      
+      ranking_completo <- rbind(ranking_completo, data.frame(
+        distancia = d,
+        agregacion = a,
+        inercia = inercia_val
+      ))
+    }, silent = TRUE)
+  }
+}
+
+# Ver el ranking total (Menor inercia = Mejor compactación)
+ranking_completo %>% arrange(inercia) %>% head(10)
+```
+
+## Agnes 
+
+La inclusión del algoritmo AGNES (Agglomerative Nesting) en este análisis se justifica por su capacidad para cuantificar la robustez de la jerarquía de los datos mediante el coeficiente aglomerativo (AC), una métrica que mide la fuerza de la estructura de agrupación identificada. A diferencia de los métodos de partición simples, AGNES permite evaluar qué tan "naturales" son los perfiles de riesgo encontrados, asegurando que la clasificación de los 172 hombres no sea un artefacto del azar, sino el reflejo de agrupaciones cohesivas basadas en las dimensiones rotadas de malestar, conducta y contexto. Al maximizar este coeficiente, se garantiza una segmentación más estable y parsimoniosa, lo cual es fundamental para que el futuro clasificador de la aplicación móvil asigne niveles de riesgo con una precisión clínica respaldada por la estructura intrínseca de la población atendida en el Instituto WEM.
+
+```{r}
+# -------------------------------------------------------------------------
+# 2. RANKING AGNES: BUSCANDO LA ESTRUCTURA MÁS FUERTE
+# -------------------------------------------------------------------------
+
+# Definimos los métodos compatibles con AGNES en el paquete 'cluster'
+distancias_agnes <- c("euclidean", "manhattan", "mahalanobis")
+agregaciones_agnes <- c("ward", "single", "complete", "average", "weighted")
+
+resultados_agnes <- data.frame(
+  metodo_distancia = character(),
+  metodo_agregacion = character(),
+  coeficiente_aglomerativo = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (d in distancias_agnes) {
+  
+  # Selección de matriz de distancia
+  if (d == "mahalanobis") {
+    matriz_dist_agnes <- dist_mahalanobis(coords_cluster)
+  } else {
+    matriz_dist_agnes <- dist(coords_cluster, method = d)
+  }
+
+  for (a in agregaciones_agnes) {
+    # Restricción: ward en agnes suele requerir distancias tipo euclídeo
+    if (a == "ward" && (d != "euclidean" && d != "mahalanobis")) next
+
+    try({
+      # Construir el modelo con agnes
+      # Nota: metric se ignora si pasamos una matriz de disimilitud
+      modelo_agnes <- agnes(matriz_dist_agnes, method = a)
+
+      # Guardar el Coeficiente Aglomerativo (AC)
+      # Un AC cercano a 1 indica una estructura de clúster muy sólida
+      resultados_agnes <- resultados_agnes %>%
+        add_row(
+          metodo_distancia = d,
+          metodo_agregacion = a,
+          coeficiente_aglomerativo = modelo_agnes$ac
+        )
+    }, silent = TRUE)
+  }
+}
+
+# Ranking de AGNES (Mayor coeficiente es mejor)
+mejores_agnes <- resultados_agnes %>% arrange(desc(coeficiente_aglomerativo))
+print("--- Ranking de AGNES (Estructura más natural) ---")
+print(mejores_agnes)
+```
+
+# Determinar el clúster
+
+> Codo
+
+```{r}
+# 1. Método del Codo (WSS: Within-Cluster Sum of Squares)
+# Este gráfico muestra cómo disminuye la inercia total a medida que aumentamos k.
+fviz_nbclust(coords_cluster, 
+             FUNcluster = hcut, 
+             method = "wss",
+             hc_method = "ward.D2", # Consistencia con tu ranking previo
+             hc_metric = "euclidean") +
+  geom_vline(xintercept = 3, linetype = 2, color = "red") + 
+  labs(title = "Optimización de Clústeres: Método del Codo",
+       subtitle = "Buscando el punto de inflexión (Elbow)",
+       x = "Número de Clústeres (k)",
+       y = "Inercia Intraclase Total")
+```
+
+> Silueta
+
+```{r}
+# 2. Método de la Silueta (Average Silhouette Width)
+# Evalúa la cohesión y separación. Un valor más alto indica grupos mejor definidos.
+fviz_nbclust(coords_cluster, 
+             FUNcluster = hcut, 
+             method = "silhouette",
+             hc_method = "ward.D2",
+             hc_metric = "euclidean") +
+  labs(title = "Optimización de Clústeres: Análisis de Silueta",
+       subtitle = "El pico más alto sugiere el k más robusto",
+       x = "Número de Clústeres (k)",
+       y = "Ancho de Silueta Promedio")
+```
+
+## Dendrograma
+
+```{r}
+# 1. Calcular la matriz de distancia sobre las coordenadas rotadas
+dist_euclidean <- dist(coords_cluster, method = "euclidean")
+
+# 2. Generar el modelo hclust
+hclust_ward <- hclust(dist_euclidean, method = "ward.D2")
+```
+
+```{r}
+# DENDROGRAMA LIMPIO (Sin etiquetas ni cajas)
+# -------------------------------------------------------------------------
+
+# 1. Mantenemos el objeto dendrograma ya coloreado con k=3
+dend_obj <- as.dendrogram(hclust_ward)
+color_dend <- color_branches(dend_obj, k = 3, groupLabels = TRUE)
+
+# 2. Graficamos con los parámetros de limpieza
+plot(color_dend, 
+     main = "",
+     ylab = "Altura (Disimilitud)",
+     sub = "Método: Ward.D2 | Distancia: Euclídea",
+     leaflab = "none") # Esto quita las etiquetas de los individuos en el eje X
+```
+
+# Visualización de clústers
+
+```{r}
+# 1. Extraer los grupos del modelo jerárquico (k=3)
+# Usamos el modelo hclust_ward que generó el dendrograma previo
+grupos <- cutree(hclust_ward, k = 3)
+cluster <- as.factor(grupos)
+etiquetas_clinicas <- c("No Riesgo", "Externalizante", "Internalizante")
+cluster <- factor(grupos, 
+                  levels = c(1, 2, 3), 
+                  labels = etiquetas_clinicas)
+```
+
+```{r}
+cluster
+```
+
+
+```{r}
+# 2. Mapa de Individuos (Dim 1 vs Dim 2)
+# Coloreamos los 172 hombres según su pertenencia al clúster
+plot(res.final, 
+     choice = "ind", 
+     coloring.ind = cluster, 
+     label = FALSE, 
+     main = "Mapa de Clústeres: Dim 1 (Malestar) vs Dim 2 (Acción)",
+     posleg = "bottomleft", # Posición de la leyenda de clústeres
+     axes = c(1, 2))
+```
+
+```{r}
+plot(res.final, 
+     choice = "ind", 
+     coloring.ind = cluster, 
+     label = FALSE, 
+     main = "Mapa de Clústeres: Dim 1 (Malestar) vs Dim 3 (Contexto)",
+     posleg = "bottomleft",
+     axes = c(1, 3))
+```
+
+# Spider plot
+
+```{r}
+df_final <- readRDS("../data/df_final.rds")
+glimpse(df_final)
+```
+
+```{r}
+# Asignar los clústeres al dataframe original
+# Asegúrate de usar el modelo 'hclust_ward' que generaste con Ward.D2
+df_final$cluster <- cluster
+
+# Verificar la distribución de los hombres en cada grupo
+table(df_final$cluster)
+```
+
+
+```{r, fig.width=10, fig.height=10}
+# A. Ejecución Cuantitativa (Incluyendo Edad y Sesiones sin romper el gráfico)
+vars_cuanti <- c("edad", "sesiones_cumplidas", # Variables de escala distinta
+                 "EIS_Roberts", "salud_fisica", "maltrato_emocional", 
+                 "castigo_fisico", "abuso_sexual", "ocultar_emociones", 
+                 "dificultad_pedir_ayuda", "guarda_sentimientos", 
+                 "sin_motivacion", "preocupado", "sin_proposito", 
+                 "no_reconocer_logros", "incapaz_solucionar", 
+                 "intento_autolesion", "plan_autolesion", "autolesion_fisica", 
+                 "conduccion_temeraria", "soledad", "conflicto_familiar", 
+                 "dificultad_economica", "exigencia_academica_laboral", 
+                 "descontrol_drogas", "abuso_alcohol", "descontrol_enojo")
+
+plot_spider_quanti_norm(df_final, vars_cuanti, title = "Perfil Integral Normalizado (0=Mín Global, 1=Máx Global)")
+```
+
+```{r, fig.width=10, fig.height=10}
+# -------------------------------------------------------------------------
+# EJECUCIÓN: PERFIL DE FACTORES CUALITATIVOS (TODAS LAS VARIABLES BINARIAS)
+# -------------------------------------------------------------------------
+
+# 1. Definir todas las variables cualitativas de riesgo (Binarias: Sí/No)
+vars_quali_todas <- c("medicamento_psiquiatrico", 
+                      "discapacidad_fisica", 
+                      "suicidio_familiar", 
+                      "ruptura_reciente", 
+                      "crisis_pareja_actual", 
+                      "medidas_cautelares")
+
+# 2. Generar el gráfico con líneas continuas
+plot_spider_quali_perc(df_final, 
+                       vars = vars_quali_todas, 
+                       title = "Prevalencia de Factores de Riesgo (% de Casos 'Sí')")
+```
+
+
+```{r, fig.width=12, fig.height=14}
+# 1. Función Moda
+get_mode <- function(x) {
+  ux <- unique(na.omit(x))
+  if(length(ux) == 0) return(NA) # Protección si todo es NA
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# 2. Listas de Variables (ELIMINAMOS 'orientacion_sexual')
+vars_cuanti_todas <- c(
+  "edad", "sesiones_cumplidas", "EIS_Roberts", "salud_fisica", 
+  "maltrato_emocional", "castigo_fisico", "abuso_sexual", 
+  "ocultar_emociones", "dificultad_pedir_ayuda", "guarda_sentimientos", 
+  "sin_motivacion", "preocupado", "sin_proposito", "no_reconocer_logros", 
+  "incapaz_solucionar", "intento_autolesion", "plan_autolesion", 
+  "autolesion_fisica", "conduccion_temeraria", "soledad", 
+  "conflicto_familiar", "dificultad_economica", "exigencia_academica_laboral", 
+  "descontrol_drogas", "abuso_alcohol", "descontrol_enojo"
+)
+
+vars_cuali_todas <- c(
+  "medicamento_psiquiatrico", "discapacidad_fisica", "suicidio_familiar", 
+  "ruptura_reciente", "crisis_pareja_actual", "medidas_cautelares",
+  "escolaridad", "estado_civil", "ocupacion" 
+  # Se eliminó 'orientacion_sexual' para evitar el error
+)
+
+# 3. Procesamiento
+# A. Numéricas
+df_num <- df_final %>%
+  group_by(cluster) %>%
+  summarise(across(all_of(vars_cuanti_todas), \(x) mean(x, na.rm = TRUE))) %>%
+  pivot_longer(cols = -cluster, names_to = "Variable", values_to = "Valor_Real") %>%
+  group_by(Variable) %>%
+  mutate(
+    Tipo = "1. Numérica (Promedio)",
+    Valor_Escalado = (Valor_Real - min(Valor_Real)) / (max(Valor_Real) - min(Valor_Real)),
+    Texto_Etiqueta = sprintf("%.1f", Valor_Real)
+  )
+
+# B. Categóricas
+df_cat <- df_final %>%
+  group_by(cluster) %>%
+  summarise(across(all_of(vars_cuali_todas), get_mode)) %>%
+  pivot_longer(cols = -cluster, names_to = "Variable", values_to = "Texto_Etiqueta") %>%
+  mutate(
+    Tipo = "2. Categórica (Moda)",
+    Valor_Real = NA, 
+    Valor_Escalado = NA
+  )
+
+# C. Unir
+df_heatmap_total <- bind_rows(df_num, df_cat)
+df_heatmap_total$cluster <- factor(df_heatmap_total$cluster)
+
+# 4. Gráfico
+ggplot(df_heatmap_total, aes(x = cluster, y = Variable)) +
+  geom_tile(aes(fill = Valor_Escalado), color = "white", linewidth = 0.2) + # linewidth actualizado
+  geom_text(aes(label = Texto_Etiqueta), color = "black", size = 2.8) +
+  scale_fill_gradient(low = "#ffffcc", high = "#2c7fb8", na.value = "#f0f0f0", 
+                      name = "Intensidad Relativa") +
+  facet_grid(Tipo ~ ., scales = "free_y", space = "free_y") +
+  labs(title = "Perfilamiento Integral de Clústeres",
+       subtitle = "Promedio para Escalas | Moda para Factores",
+       x = "Clúster", y = "") +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    strip.text = element_text(face = "bold", size = 10),
+    axis.text.x = element_text(size = 12, face = "bold"),
+    legend.position = "right"
+  )
+```
+
+# Homocedasticidad
+
+```{r}
+vars_cuanti_todas <- c(
+  "edad", "sesiones_cumplidas", "EIS_Roberts", "salud_fisica", 
+  "maltrato_emocional", "castigo_fisico", "abuso_sexual", 
+  "ocultar_emociones", "dificultad_pedir_ayuda", "guarda_sentimientos", 
+  "sin_motivacion", "preocupado", "sin_proposito", "no_reconocer_logros", 
+  "incapaz_solucionar", "intento_autolesion", "plan_autolesion", 
+  "autolesion_fisica", "conduccion_temeraria", "soledad", 
+  "conflicto_familiar", "dificultad_economica", "exigencia_academica_laboral", 
+  "descontrol_drogas", "abuso_alcohol", "descontrol_enojo"
+)
+
+# 3. Ejecutar y mostrar resultados ordenados
+tabla_homocedasticidad <- homocedasticidad(df_final, vars_cuanti_todas)
+
+# Ordenamos para ver primero las que NO cumplen (las problemáticas)
+tabla_homocedasticidad  %>%
+  arrange(Valor_p) %>%
+  mutate(
+    Valor_p = format.pval(Valor_p, digits = 3, eps = 0.001) # Formato científico legible <0.001
+  ) %>%
+  kbl(caption = "Prueba de Levene (Homogeneidad de Varianzas)") %>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  row_spec(which(tabla_homocedasticidad$Valor_p < 0.05), bold = TRUE, color = "#D95F02") # Resalta los que NO cumplen
+```
+
+# Normalidad
+
+
+```{r}
+# Asegúrate de tener cargada tu lista de variables 'vars_cuanti_todas'
+tabla_norm <- normalidad(df_final, vars_cuanti_todas)
+
+# Mostrar tabla ordenada por P-Valor
+tabla_norm %>%
+  arrange(P_Valor) %>%
+  mutate(P_Valor = format.pval(P_Valor, digits = 3, eps = 0.001)) %>%
+  kbl(caption = "Prueba de Normalidad de Shapiro-Wilk") %>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  row_spec(which(tabla_norm$P_Valor < 0.05), bold = TRUE, color = "#D95F02")
+```
+
+# Análisis inferencial
+
+```{r}
+# Lista de variables SIN EDAD (porque esa va con ANOVA)
+vars_resto <- c(
+  "sesiones_cumplidas", "EIS_Roberts", "salud_fisica", 
+  "maltrato_emocional", "castigo_fisico", "abuso_sexual", 
+  "ocultar_emociones", "dificultad_pedir_ayuda", "guarda_sentimientos", 
+  "sin_motivacion", "preocupado", "sin_proposito", "no_reconocer_logros", 
+  "incapaz_solucionar", "intento_autolesion", "plan_autolesion", 
+  "autolesion_fisica", "conduccion_temeraria", "soledad", 
+  "conflicto_familiar", "dificultad_economica", "exigencia_academica_laboral", 
+  "descontrol_drogas", "abuso_alcohol", "descontrol_enojo"
+)
+
+# Ejecutar las dos funciones
+res_anova <- anova(df_final)
+res_kruskal <- kruskal(df_final, vars_resto)
+
+# Unir y Visualizar
+tabla_final <- bind_rows(res_anova, res_kruskal)
+
+tabla_final %>%
+  arrange(desc(Tamano_Efecto)) %>%
+  mutate(P_Valor = format.pval(P_Valor, digits = 3, eps = 0.001)) %>%
+  kbl(caption = "Comparación Estadística de Perfiles (ANOVA y Kruskal-Wallis)") %>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  row_spec(which(tabla_final$Significativo == "SÍ"), bold = TRUE, color = "#1B9E77")
+```
+
+
+# Post Hoc
+
+```{r}
+# A. Para la Edad (ANOVA)
+res_tukey <- post_hoc_anova(df_final, var = "edad")
+res_tukey
+```
+
+```{r}
+# Calcular Media y Desviación Estándar de la Edad por Clúster
+tabla_edad <- df_final %>%
+  group_by(cluster) %>%
+  summarise(
+    N = n(),
+    Edad_Media = mean(edad, na.rm = TRUE),
+    Desviacion = sd(edad, na.rm = TRUE),
+    Minima = min(edad, na.rm = TRUE),
+    Maxima = max(edad, na.rm = TRUE)
+  )
+
+# Mostrar tabla bonita
+tabla_edad %>%
+  kbl(caption = "Edad Promedio por Perfil de Riesgo") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+
+```{r}
+res_dunn <- post_hoc_kruskal(df_final, vars_resto)
+```
+
+```{r}
+# -------------------------------------------------------------------------
+# VISUALIZACIÓN DE RESULTADOS SIGNIFICATIVOS
+# -------------------------------------------------------------------------
+
+# Unimos ambas tablas para ver todo junto
+tabla_comparaciones <- bind_rows(res_tukey, res_dunn)
+
+# Filtramos SOLO lo significativo (SÍ) para el reporte
+tabla_comparaciones %>%
+  filter(Significativo == "SÍ") %>%
+  arrange(Variable, P_Ajustado) %>%
+  mutate(P_Ajustado = format.pval(P_Ajustado, digits = 3, eps = 0.001)) %>%
+  kbl(caption = "Diferencias Significativas entre Pares de Clústeres") %>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  row_spec(0, bold = TRUE, color = "white", background = "#2c3e50")
+```
+
+# Variables cualitativas 
+
+
+```{r}
+# --- EJECUCIÓN ---
+
+vars_cuali_todas <- c(
+  "medicamento_psiquiatrico", "discapacidad_fisica", "suicidio_familiar", 
+  "ruptura_reciente", "crisis_pareja_actual", "medidas_cautelares",
+  "escolaridad", "estado_civil", "ocupacion"
+)
+
+tabla_cuali <- analisis_cuali_robusto(df_final, vars_cuali_todas)
+
+# Visualizar
+tabla_cuali %>%
+  arrange(desc(V_Cramer)) %>%
+  mutate(P_Valor = ifelse(is.na(P_Valor), "-", format.pval(P_Valor, digits = 3, eps = 0.001))) %>%
+  kbl(caption = "Asociación Estadística: Perfiles vs. Factores de Riesgo") %>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  row_spec(which(tabla_cuali$Significativo == "SÍ"), bold = TRUE, color = "#1B9E77")
+```
+
+## Guardar escalado
+
+```{r}
+
+df_filtrado <- leer_df_final("../data/df_filtrado.csv")
+  
+  
+# 1. Definimos la "Receta" de transformación
+# La fórmula '~ .' significa "transforma todas las columnas"
+receta_simple <- recipe(~ ., data = df_filtrado) %>%
+  
+  # a. Escalar todas las variables numéricas (Media=0, Desviación=1)
+  step_normalize(all_numeric()) %>%
+  
+  # b. Convertir todas las categóricas (Factores) a números (0/1)
+  # one_hot = FALSE es lo estándar (crea k-1 columnas para evitar redundancia)
+  step_dummy(all_nominal())
+
+# 2. "Horneamos" la receta para obtener el dataframe final
+df_escalado_filtrado <- receta_simple %>%
+  prep() %>%
+  bake(new_data = NULL)
+
+# 3. Importante: Agregamos la variable objetivo 'cluster' al final
+# (Asumiendo que la tienes en df_final$cluster, ya que df_filtrado no la traía)
+df_escalado_filtrado$cluster <- df_final$cluster
+
+# --- VERIFICACIÓN ---
+glimpse(df_escalado_filtrado)
+```
+
+```{r}
+saveRDS(df_escalado_filtrado, "../data/df_escalado_filtrado.rds")
+```
+
+# Guardar clústers
+
+```{r}
+saveRDS(cluster, "../data/cluster.rds")
+```
+
+
+# Gráficos 
+
+```{r}
+# 1. Abrir dispositivo gráfico para Fig3.png
+# Usamos un formato más horizontal (12x8) para que el árbol se expanda bien
+png("../img/Fig3.png", 
+    width = 12, height = 8, units = "in", res = 300, family = "sans")
+
+# 2. Configuración de márgenes
+# (Abajo=2, Izquierda=5 para el eje Y, Arriba=1, Derecha=1)
+par(mar = c(2, 5, 1, 1))
+
+# 3. Preparación del objeto dendrograma
+dend_obj <- as.dendrogram(hclust_ward)
+
+# Nota: groupLabels = TRUE añade etiquetas de grupos si están definidas. 
+# Si ensucia el gráfico, cámbialo a FALSE.
+color_dend <- color_branches(dend_obj, k = 3, groupLabels = TRUE)
+
+# 4. Graficar (LIMPIO PARA APA)
+plot(color_dend, 
+     main = "",              # Sin título (va en el Word)
+     sub = "",               # Sin subtítulo (va en la nota de figura)
+     ylab = "Distancia Euclídea",  # Etiqueta clara
+     leaflab = "none",       # Sin etiquetas de individuos en el eje X
+     axes = FALSE)           # Ocultamos ejes por defecto
+
+# 5. Agregar Eje Y personalizado y legible
+# las = 1 hace que los números se lean horizontalmente
+axis(side = 2, las = 1, cex.axis = 1.1)
+
+# 6. Cerrar dispositivo
+dev.off()
+```
+
+
+Cmabio de nombres 
+
+```{r}
+str(df_final)
+```
+
+
+```{r}
+library(dplyr)
+
+df_final <- df_final %>%
+  rename(
+    `Plan de autolesión`                  = plan_autolesion,
+    `Episodio de autolesión física`       = autolesion_fisica,
+    `Intento de autolesión`               = intento_autolesion,
+    `Sentirse sin propósito`              = sin_proposito,
+    `Incapacidad para solucionar`         = incapaz_solucionar,
+    `Conflicto familiar`                  = conflicto_familiar,
+    `Sin motivación`                      = sin_motivacion,
+    `Soledad`                             = soledad,
+    `Conducción temeraria`                = conduccion_temeraria,
+    `Dificultad para reconocer logros`    = no_reconocer_logros,
+    `Preocupación`                        = preocupado,
+    `Tendencia a ocultar emociones`       = ocultar_emociones,
+    `Descontrol del enojo`                = descontrol_enojo,
+    `Elevada exigencia académica laboral` = exigencia_academica_laboral,
+    `Dificultades económicas`             = dificultad_economica,
+    `Ruptura reciente`                    = ruptura_reciente,
+    `Maltrato emocional en la infancia`   = maltrato_emocional,
+    `Guardarse sentimientos`              = guarda_sentimientos,
+    `Dificultad para pedir ayuda`         = dificultad_pedir_ayuda,
+    `Estado civil`                        = estado_civil,
+    `Crisis de pareja actual`             = crisis_pareja_actual,
+    `Descontrol de drogas`                = descontrol_drogas,
+    `Abuso de alcohol`                    = abuso_alcohol,
+    `Edad`                                = edad,
+    `Consumo de medicamento psiquiátrico` = medicamento_psiquiatrico,
+    `Escolaridad`                         = escolaridad,
+    `Tiene medidas cautelares`            = medidas_cautelares,
+    `Ocupación`                           = ocupacion,
+    `Suicidio de un familiar`             = suicidio_familiar,
+    `Escala de ideación suicida (EIS)`    = EIS_Roberts,
+    `Buena salud física`                  = salud_fisica,
+    `Castigo físico en la infancia`       = castigo_fisico,
+    `Abuso sexual en la infancia`         = abuso_sexual,
+    `Posee discapacidad física`           = discapacidad_fisica
+  )
+
+names(df_final)
+
+```
+```{r}
+str(df_final)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+# -------------------------------------------------------------------------
+# PASO 1: CONSTRUCCIÓN SEGURA DEL DATASET
+# -------------------------------------------------------------------------
+
+# Usamos 'transmute' para seleccionar Y renombrar al mismo tiempo.
+# Esto evita errores de "variable not found" más adelante.
+
+datos_grafico <- df_final %>%
+  transmute(
+    cluster = cluster,
+    
+    # --- VARIABLES NUMÉRICAS (Tal cual aparecen en tu glimpse) ---
+    `Ideación Suicida`       = `Escala de ideación suicida (EIS)`,
+    `Soledad`                = `Soledad`,
+    `Sin propósito`          = `Sentirse sin propósito`,
+    `Sin motivación`         = `Sin motivación`,
+    `Preocupación`           = `Preocupación`,
+    `Incapaz solucionar`     = `Incapacidad para solucionar`,
+    `Inhibición emocional`   = `Guardarse sentimientos`,
+    `Ocultar emociones`      = `Tendencia a ocultar emociones`,
+    `Dificultad para pedir ayuda`= `Dificultad para pedir ayuda`,
+    `No reconoce logros`     = `Dificultad para reconocer logros`,
+    `Maltrato infantil`      = `Maltrato emocional en la infancia`,
+    `Descontrol del enojo`   = `Descontrol del enojo`,
+    `Conducción temeraria`   = `Conducción temeraria`,
+    `Abuso de alcohol`       = `Abuso de alcohol`,
+    `Descontrol de drogas`   = `Descontrol de drogas`,
+    `Autolesión física`      = `Episodio de autolesión física`,
+    `Plan suicida`           = `Plan de autolesión`,
+    `Intento previo`         = `Intento de autolesión`,
+    `Conflicto familiar`     = `Conflicto familiar`,
+    `Dificultades económicas`= `Dificultades económicas`,
+    `Exigencia laboral`      = `Elevada exigencia académica laboral`,
+
+    # --- VARIABLES CATEGÓRICAS (FACTORES) ---
+    # Aquí aplicamos una conversión robusta: detecta "Sí", "Si", "Yes", etc.
+    `Crisis de pareja actual` = case_when(
+      str_detect(`Crisis de pareja actual`, "(?i)s[íi]|yes") ~ 1, 
+      TRUE ~ 0
+    ),
+    `Ruptura reciente` = case_when(
+      str_detect(`Ruptura reciente`, "(?i)s[íi]|yes") ~ 1, 
+      TRUE ~ 0
+    ),
+    `Suicidio de un familiar` = case_when(
+      str_detect(`Suicidio de un familiar`, "(?i)s[íi]|yes") ~ 1, 
+      TRUE ~ 0
+    )
+  )
+
+# VERIFICACIÓN RÁPIDA (Opcional: mira la consola para ver si hay ceros y unos)
+print("Verificando conversión de datos...")
+head(datos_grafico)
+
+# -------------------------------------------------------------------------
+# PASO 2: CÁLCULO DE Z-SCORES Y GRÁFICO
+# -------------------------------------------------------------------------
+
+# A. Estandarizar
+df_z_long <- datos_grafico %>%
+  mutate(across(-cluster, ~ scale(.)[,1])) %>% # Truco [,1] para evitar error de matriz
+  group_by(cluster) %>%
+  summarise(across(everything(), mean, na.rm = TRUE)) %>%
+  pivot_longer(-cluster, names_to = "Variable", values_to = "Z_Score")
+
+# B. Orden Lógico (Emocional -> Conductual -> Contexto)
+orden_logico <- c(
+  "Ideación Suicida", "Soledad", "Sin propósito", "Sin motivación", 
+  "Preocupación", "Incapaz solucionar", "Inhibición emocional", 
+  "Ocultar emociones", "Pedir ayuda (Dificultad)", "No reconoce logros",
+  "Descontrol del enojo", "Conducción temeraria", "Abuso de alcohol", 
+  "Descontrol de drogas", "Autolesión física", "Plan suicida", "Intento previo",
+  "Crisis de pareja actual", "Ruptura reciente", "Conflicto familiar",
+  "Dificultades económicas", "Exigencia laboral", "Maltrato infantil", 
+  "Suicidio de un familiar"
+)
+
+# Filtrar variables y ORDENAR FACTOR CLÚSTER (Para la leyenda)
+df_z_long <- df_z_long %>%
+  filter(Variable %in% orden_logico) %>%
+  mutate(
+    # 1. Orden de las variables en el Eje X
+    Variable = factor(Variable, levels = orden_logico),
+    
+    # 2. ORDEN DE LA LEYENDA (Aquí definimos quién va primero)
+    cluster = factor(cluster, levels = c("No Riesgo", "Internalizante", "Externalizante"))
+  )
+
+
+# C. Generar Gráfico
+grafico_final <- ggplot(df_z_long, aes(x = Variable, y = Z_Score, group = cluster, color = cluster)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_line(linewidth = 1.2, alpha = 0.8) +
+  geom_point(size = 3) +
+   
+  scale_color_manual(values = c("No Riesgo" = "#2ca25f", 
+                                "Internalizante" = "#2b8cbe", 
+                                "Externalizante" = "#e34a33")) +
+  labs(
+    title = "",      
+    subtitle = "",
+    y = "Puntuación Z", 
+    x = "", 
+    color = "Perfil"
+  ) +
+  theme_minimal() +
+  theme(
+    # -----------------------------------------------------------
+    # EJE X (Variables abajo) - ¡SOLO UNA VEZ!
+    # -----------------------------------------------------------
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, 
+                               color = "black", size = 16), # Tamaño grande
+    
+    # -----------------------------------------------------------
+    # EJE Y
+    # -----------------------------------------------------------
+    axis.text.y = element_text(size = 16, color = "black"), # Números
+    axis.title.y = element_text(size = 16, face = "bold", color = "black"), # Título
+    
+    # -----------------------------------------------------------
+    # LEYENDA
+    # -----------------------------------------------------------
+    legend.position = "top",
+    legend.text = element_text(size = 14),      
+    legend.title = element_text(size = 18), 
+    legend.key.size = unit(1.5, "cm"),
+    
+    # -----------------------------------------------------------
+    # MÁRGENES (Importante para que no se corte el texto de abajo)
+    # -----------------------------------------------------------
+    plot.margin = margin(t = 1, r = 1, b = 3, l = 1, unit = "cm") 
+  )
+
+# IMPRIMIR
+print(grafico_final)
+```
+
+```{r}
+
+path_img <- "../img" 
+
+if (!dir.exists(path_img)) {
+  dir.create(path_img, recursive = TRUE)
+  message("Se creó la carpeta: ", path_img)
+}
+
+# -------------------------------------------------------------------------
+# OPCIÓN A: Versión para el Manuscrito (LIMPIA)
+# -------------------------------------------------------------------------
+# Esta es la que va en el Word. Sin título adentro (el título va en el texto del documento).
+
+grafico_limpio <- grafico_final +
+  labs(title = NULL, subtitle = NULL, caption = NULL) + # Eliminamos textos internos
+  theme(
+    text = element_text(family = "sans"), # Tipografía estándar
+    plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "pt") # Márgenes limpios
+  )
+
+ggsave(
+  filename = paste0(path_img, "/Fig5_Perfiles_Z.png"), 
+  plot = grafico_limpio, 
+  width = 12,   # Ancho panorámico para que las etiquetas se lean bien
+  height = 7,   # Alto estándar
+  units = "in", 
+  dpi = 300,    # Alta resolución (300 ppp)
+  bg = "white"  # Fondo blanco obligatorio
+)
+
+message("Gráfico limpio guardado en: ", path_img, "/Fig4_Perfiles_Manuscrito_APA.png")
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+vars_cat <- c("Ocupación", "Estado civil", "Escolaridad")
+
+modas_por_cluster <- df_final %>%
+  select(cluster, all_of(vars_cat)) %>%
+  pivot_longer(
+    cols = all_of(vars_cat),
+    names_to = "variable",
+    values_to = "categoria"
+  ) %>%
+  count(cluster, variable, categoria, name = "n") %>%
+  group_by(cluster, variable) %>%
+  mutate(
+    porcentaje = round(100 * n / sum(n), 2),
+    es_moda = n == max(n)
+  ) %>%
+  filter(es_moda) %>%
+  arrange(cluster, variable, desc(n), categoria) %>%
+  ungroup()
+
+modas_por_cluster
+
+```
+
+```{r}
+str(df_final)
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# -------------------------------------------------------------------------
+# FIGURA 4: PLANO DE INDIVIDUOS CON CLÚSTERES (AJUSTADO)
+# -------------------------------------------------------------------------
+
+# 1. Extraer coordenadas (Igual que antes)
+df_pca_ind <- as.data.frame(res.final$ind$coord[, 1:2])
+colnames(df_pca_ind) <- c("Dim1", "Dim2")
+
+# 2. Agregar la variable Cluster
+df_pca_ind$cluster <- cluster
+
+# 3. FORZAR EL ORDEN DE LA LEYENDA
+df_pca_ind$cluster <- factor(df_pca_ind$cluster, 
+                             levels = c("No Riesgo", "Externalizante", "Internalizante"))
+
+# 4. Obtener porcentaje de varianza
+var_dim1 <- round(res.final$eig[1, 2], 1)
+var_dim2 <- round(res.final$eig[2, 2], 1)
+
+# 5. Generar el Gráfico
+plot_pca <- ggplot(df_pca_ind, aes(x = Dim1, y = Dim2, color = cluster, fill = cluster)) +
+  
+  # Líneas de origen
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+  
+  # Puntos
+  geom_point(size = 3, alpha = 0.7) + # Aumenté ligeramente el punto a size=3
+  
+  # ELIPSES: CAMBIO AQUÍ -> level = 0.99 para abarcar más individuos
+  stat_ellipse(geom = "polygon", alpha = 0.1, level = 0.95, show.legend = FALSE) +
+  
+  # Colores
+  scale_color_manual(values = c("No Riesgo" = "#2ca25f", 
+                                "Internalizante" = "#2b8cbe", 
+                                "Externalizante" = "#e34a33")) +
+  scale_fill_manual(values = c("No Riesgo" = "#2ca25f", 
+                               "Internalizante" = "#2b8cbe", 
+                               "Externalizante" = "#e34a33")) +
+  
+  # Etiquetas
+  labs(
+    x = paste0("Dimensión 1: Internalizante (", var_dim1, "%)"),
+    y = paste0("Dimensión 2: Externalizante (", var_dim2, "%)"),
+    color = "Perfil",
+    fill = "Perfil"
+  ) +
+  
+  # TEMA Y TAMAÑOS DE LETRA (AQUÍ ESTÁN LOS CAMBIOS GRANDES)
+  theme_minimal(base_size = 22) + # Subimos la base general a 16
+  theme(
+    legend.position = "top",
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black"),
+    
+    # Aumentar Títulos de Ejes (Dimensión 1...)
+    axis.title = element_text(size = 18, face = "bold", color = "black"),
+    
+    # Aumentar Números de los Ejes
+    axis.text = element_text(size = 16, color = "black"),
+    
+    # Aumentar Texto de la Leyenda (No Riesgo, etc.)
+    legend.text = element_text(size = 16, color = "black"),
+    
+    # Aumentar Título de la Leyenda (Perfil)
+    legend.title = element_text(size = 18, face = "bold", color = "black")
+  )
+
+# 6. Mostrar
+print(plot_pca)
+
+# 7. Guardar (Asegurando que quepa todo el texto grande)
+ggsave("../img/Fig4_PCA_Individuos.png", plot = plot_pca, width = 14, height = 10, dpi = 300, bg = "white")
+```
+

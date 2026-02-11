@@ -1,0 +1,330 @@
+---
+title: "Selección"
+author: "Esteban Navarro"
+date: "2026-01-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(Boruta)
+library(glmnet)
+library(randomForest)
+library(caret)
+library(UpSetR)
+library(ComplexUpset)
+```
+
+
+# Carga
+
+```{r setup, include=FALSE}
+# Cargamos el objeto con un solo comando
+df_escalado <- readRDS("../data/df_escalado.rds")
+cluster <- readRDS("../data/cluster.rds")
+df_escalado$cluster <- cluster
+```
+
+```{r}
+str(df_escalado)
+```
+
+Visualización
+
+```{r}
+# 1. Preparar los datos para el gráfico
+distribucion <- df_escalado %>%
+  count(cluster) %>%
+  mutate(porcentaje = n / sum(n) * 100)
+
+# 2. Crear el gráfico de barras
+ggplot(distribucion, aes(x = cluster, y = porcentaje, fill = cluster)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  geom_text(aes(label = paste0(round(porcentaje, 1), "%")), 
+            vjust = -0.5, size = 5, fontface = "bold") +
+  scale_fill_manual(values = c("No Riesgo" = "#2ecc71", 
+                               "Externalizante" = "#f1c40f", 
+                               "Internalizante" = "#e74c3c")) +
+  labs(title = "Distribución de Perfiles de Riesgo en el Instituto WEM",
+       subtitle = paste("N total =", sum(distribucion$n)),
+       x = "Perfil (Clúster)",
+       y = "Porcentaje de la muestra (%)") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", size = 16),
+        axis.title = element_text(face = "bold")) +
+  ylim(0, max(distribucion$porcentaje) + 10) # Espacio para el texto de arriba
+```
+
+# Boruta
+
+```{r}
+# 1. Configurar la semilla para que los resultados sean siempre los mismos
+set.seed(123)
+
+# 2. Ejecutar el algoritmo Boruta
+# 'cluster ~ .' le dice al modelo que use todas las variables para predecir el clúster
+# doTrace = 2 permite ver el progreso en tiempo real (recomendado para 57 variables)
+boruta_output <- Boruta(cluster ~ ., data = df_escalado, doTrace = 2)
+```
+
+```{r}
+# 3. (Opcional) Resolver variables tentativas
+# Si al final quedan variables en amarillo, este comando las asigna a verde o rojo según su tendencia
+boruta_final <- TentativeRoughFix(boruta_output)
+
+# 4. Ver el resumen de resultados
+print(boruta_final)
+```
+
+```{r}
+# 5. Generar el gráfico de importancia
+# Las cajas verdes son variables confirmadas, las rojas rechazadas
+plot(boruta_final, las = 2, cex.axis = 0.6, 
+     main = "Selección de Características mediante Boruta (Instituto WEM)",
+     xlab = "", ylab = "Importancia (Z-Score)")
+
+# 6. Extraer la lista de variables "ganadoras" para el paso de Lasso
+vars_seleccionadas <- getSelectedAttributes(boruta_final, withTentative = FALSE)
+print("Variables seleccionadas para el modelo Lasso:")
+print(vars_seleccionadas)
+```
+
+# Lasso 
+
+```{r}
+# 1. Calcular pesos para balancear las clases manualmente
+tab <- table(df_escalado$cluster)
+weights <- 1/tab[as.character(df_escalado$cluster)]
+weights <- as.numeric(weights / sum(weights) * nrow(df_escalado))
+
+# 2. Crear Folds Estratificados manualmente
+# Esto asegura que CADA fold de la validación cruzada tenga al menos un caso de 'Externalizante'
+set.seed(123)
+n <- nrow(df_escalado)
+nfolds <- 5 # Reducimos a 5 para mayor estabilidad
+foldid <- sample(rep(seq(nfolds), length.out = n)) 
+
+# 3. Preparar variables de Boruta (Ganadoras)
+vars_ganadoras <- getSelectedAttributes(boruta_final, withTentative = FALSE)
+x_lasso <- as.matrix(df_escalado[, vars_ganadoras])
+y_lasso <- df_escalado$cluster
+
+# 4. Ajustar el Lasso Multinomial con Pesos y Folds controlados
+cv_fit_3c <- cv.glmnet(x_lasso, y_lasso, 
+                       family = "multinomial", 
+                       weights = weights,
+                       foldid = foldid,
+                       alpha = 1, 
+                       type.measure = "deviance",
+                       maxit = 1e6) # Aumentar iteraciones para convergencia
+```
+
+```{r}
+# Extraer coeficientes para el lambda óptimo
+coef_list <- coef(cv_fit_3c, s = "lambda.min")
+
+# Ver variables clave para el grupo de 'Externalizante'
+print(coef_list$Externalizante)
+```
+
+```{r}
+# Ver variables clave para el grupo de 'Externalizante'
+print(coef_list$Internalizante)
+```
+
+```{r}
+
+print(coef_list$`No Riesgo`)
+```
+
+# Random Forest
+
+```{r, fig.width= 10, fig.height=8}
+# 1. Configurar semilla para replicabilidad
+set.seed(123)
+
+# 2. Definir el tamaño de muestra para el balanceo (downsampling)
+# Tomamos el número de casos de la clase minoritaria (Externalizante)
+n_min <- min(table(df_escalado$cluster))
+
+# 3. Ejecutar Random Forest con todas las variables del df_escalado
+# cluster ~ . indica que use todas las columnas excepto el target
+rf_completo <- randomForest(cluster ~ ., 
+                            data = df_escalado, 
+                            ntree = 1500,        # Más árboles para manejar la complejidad
+                            importance = TRUE,
+                            sampsize = rep(n_min, 3), # Balanceo equitativo por clase
+                            strata = df_escalado$cluster)
+
+# 4. Ver importancia de las variables
+# El gráfico mostrará cuáles de las 57 variables son las más potentes
+varImpPlot(rf_completo, main = "Importancia de Variables: RF Completo (57 Predictores)")
+```
+
+```{r}
+# 5. Evaluar precisión y matriz de confusión
+print(rf_completo)
+```
+
+# Comparación
+
+```{r}
+# 1. Extraer variables de Boruta (Confirmadas)
+vars_boruta <- getSelectedAttributes(boruta_final, withTentative = FALSE)
+
+# 2. Extraer variables de Lasso (Coeficientes distintos de cero para lambda.min)
+# Extraemos para cada clase y unificamos
+extract_lasso_vars <- function(coef_matrix) {
+  rows <- rownames(coef_matrix)
+  cols <- as.matrix(coef_matrix)
+  return(rows[which(cols != 0)])
+}
+
+vars_lasso_int <- extract_lasso_vars(coef_list$Internalizante)
+vars_lasso_ext <- extract_lasso_vars(coef_list$Externalizante)
+vars_lasso_nor <- extract_lasso_vars(coef_list$`No Riesgo`)
+
+# Unión de todas las variables que Lasso consideró importantes en al menos un perfil
+vars_lasso_total <- unique(c(vars_lasso_int, vars_lasso_ext, vars_lasso_nor))
+vars_lasso_total <- vars_lasso_total[vars_lasso_total != "(Intercept)"]
+
+# 3. Extraer variables de Random Forest (Top 20 por Mean Decrease Accuracy)
+importancia_rf <- as.data.frame(importance(rf_completo))
+importancia_rf$Variable <- rownames(importancia_rf)
+vars_rf <- importancia_rf %>%
+  arrange(desc(MeanDecreaseAccuracy)) %>%
+  slice(1:20) %>% # Puedes ajustar este número según tu criterio de parsimonia
+  pull(Variable)
+
+# 4. Crear Tabla Comparativa Final
+todas_las_vars <- unique(c(vars_boruta, vars_lasso_total, vars_rf))
+
+tabla_comparativa <- data.frame(
+  Variable = todas_las_vars,
+  Boruta = todas_las_vars %in% vars_boruta,
+  Lasso = todas_las_vars %in% vars_lasso_total,
+  Random_Forest = todas_las_vars %in% vars_rf
+) %>%
+  mutate(Consenso_Total = rowSums(select(., Boruta, Lasso, Random_Forest))) %>%
+  arrange(desc(Consenso_Total))
+
+# Ver el top de variables que coinciden en los 3 métodos
+print("Variables con mayor consenso entre métodos:")
+print(subset(tabla_comparativa, Consenso_Total == 3))
+```
+
+```{r}
+# 1. Definimos los datos (aseguramos que sea una lista válida)
+list_input <- list(
+  Boruta = vars_boruta,
+  Lasso = vars_lasso_total,
+  "Random Forest" = vars_rf
+)
+
+# 2. Generamos el gráfico forzando la librería clásica
+# Usamos 'UpSetR::upset' para evitar que R se confunda con ComplexUpset
+suppressWarnings({
+  UpSetR::upset(UpSetR::fromList(list_input), 
+        order.by = "freq", 
+        
+        # Colores
+        main.bar.color = "#2c3e50", 
+        sets.bar.color = "#e74c3c",
+        matrix.color = "#34495e",
+        
+        # Ajustes de texto
+        text.scale = c(1.5, 1.5, 1.3, 1.3, 1.5, 1.3),
+        mainbar.y.label = "Intersección",
+        sets.x.label = "Variables por Método"
+  )
+})
+```
+
+# Guardar los datos
+
+```{r}
+# 1. Extraer los nombres de las 16 variables del "Consenso"
+# (Aquellas donde los 3 métodos coincidieron: Boruta + Lasso + RF)
+vars_finales <- subset(tabla_comparativa, Consenso_Total == 3)$Variable
+
+# 2. Crear el nuevo dataframe seleccionado
+# IMPORTANTE: Agregamos c(vars_finales, "cluster") para incluir la variable objetivo
+df_clasificador <- df_escalado[, c(vars_finales, "cluster")]
+
+# 3. Verificación rápida
+# Deberías ver 17 columnas (16 predictoras + 1 target)
+print(paste("Dimensiones del nuevo dataset:", paste(dim(df_clasificador), collapse = " x ")))
+str(df_clasificador)
+```
+
+```{r}
+vars_finales
+```
+
+```{r}
+tabla_comparativa
+```
+
+
+```{r}
+df_final <- readRDS("../data/df_final.rds")
+```
+
+```{r}
+glimpse(df_final)
+```
+
+
+```{r}
+# Hacemos el subset directo agregando la columna "cluster"
+df_clasificador <- df_final[, c(vars_finales)]
+df_clasificador$cluster <- cluster
+
+# Verificamos que tenga 17 variables (16 predictoras + cluster)
+str(df_clasificador)
+```
+
+
+```{r}
+# 4. Guardar como CSV
+# 'row.names = FALSE' es importante para no generar una columna extra de índices
+write.csv(df_clasificador, "../data/df_clasificador_15.csv", row.names = FALSE)
+```
+
+
+# Alternativa
+
+```{r}
+var_alternativas <- c(
+  "dificultad_pedir_ayuda",   # La más importante
+  "guarda_sentimientos",
+  "autolesion_fisica",
+  "soledad",
+  "no_reconocer_logros",
+  "ocultar_emociones",
+  "sin_proposito",
+  #"escolaridad",              # Reemplazo de 'u_completo' para tener la variable original
+  "intento_autolesion",
+  "dificultad_economica",
+  "EIS_Roberts",
+  "sin_motivacion",
+  "plan_autolesion"
+)
+```
+
+```{r}
+# 2. Crear el nuevo dataframe seleccionado
+# IMPORTANTE: Agregamos c(vars_finales, "cluster") para incluir la variable objetivo
+df_final <- readRDS("../data/df_final.rds")
+df_clasificador <- df_final[, c(vars_finales)]
+df_clasificador$cluster <- cluster
+write.csv(df_clasificador, "../data/df_clasificador.csv", row.names = FALSE)
+```
+
+
