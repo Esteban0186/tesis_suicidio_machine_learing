@@ -49,7 +49,7 @@ Para reproducir los análisis, se requiere el siguiente software:
 **M.Sc. Esteban Navarro-Díaz**
 * Instituto WEM / Universidad Santa Paula
 * Costa Rica
-* Email: [Tu Correo Electrónico]
+* Email: estebanalfonso.navarro@ucr.ac.cr
 
 ---
 *Este proyecto cumple con los estándares de reproducibilidad exigidos para la publicación científica y respeta los protocolos éticos de manejo de datos clínicos.*
