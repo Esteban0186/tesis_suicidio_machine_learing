@@ -76,65 +76,95 @@ datos_crudos <- read.csv("../data/datos_crudos.csv", stringsAsFactors = FALSE)
 ```
 
 
-## Renombrar datos
-
 ```{r}
+# =========================================================
+# 2) LIMPIEZA DE NOMBRES (snake_case) + ARREGLOS PUNTUALES
+# =========================================================
+datos_crudos <- datos_crudos %>%
+  janitor::clean_names() %>%
+  # Arregla casos típicos de Forms: "marca_temporal" etc.
+  rename(
+    marca_temporal = any_of(c("marca_temporal", "marca_temporal_1", "marca_temporal_2"))
+  )
+
+# (Opcional) ver nombres ya limpios
+# names(datos_crudos)
+
+# =========================================================
+# 3) RENOMBRAR A TUS NOMBRES "FINALES"
+#    Nota: aquí uso any_of() para que NO se rompa si alguna
+#    columna no existe exactamente con ese nombre limpio.
+#    Si alguna no se renombra, revisá names(datos_crudos).
+# =========================================================
 df <- datos_crudos %>%
   rename(
+    # -------------------------------
+    # Sección 1
+    # -------------------------------
+    fecha = any_of(c("marca_temporal")),
 
-    fecha = `Marca temporal`,
-    salud_fisica = `1. Mi salud física afecta mi estado de ánimo.`,
-    maltrato_emocional = `2. Durante la niñez y adolescencia, viví experiencias en las que fui maltratado o humillado emocionalmente.`,
-    castigo_fisico = `3. Durante la niñez y adolescencia, recibí castigos físicos o golpes que me causaron daño o miedo.`,
-    abuso_sexual = `4. Durante la niñez y adolescencia, fui víctima de contacto sexual forzado o inapropiado por parte de alguien mayor.`,
-    ocultar_emociones = `5. Siento que debo ocultar mis emociones para no parecer débil.`,
-    dificultad_pedir_ayuda = `6. Me cuesta pedir ayuda cuando enfrento una dificultad.`,
-    guarda_sentimientos = `7. Cuando estoy triste o dolido, prefiero guardármelo para mí.`,
+    salud_fisica         = any_of(c("x1_mi_salud_fisica_afecta_mi_estado_de_animo")),
+    maltrato_emocional   = any_of(c("x2_durante_la_ninez_y_adolescencia_vivi_experiencias_en_las_que_fui_maltratado_o_humillado_emocionalmente")),
+    castigo_fisico       = any_of(c("x3_durante_la_ninez_y_adolescencia_recibi_castigos_fisicos_o_golpes_que_me_causaron_dano_o_miedo")),
+    abuso_sexual         = any_of(c("x4_durante_la_ninez_y_adolescencia_fui_victima_de_contacto_sexual_forzado_o_inapropiado_por_parte_de_alguien_mayor")),
+    ocultar_emociones    = any_of(c("x5_siento_que_debo_ocultar_mis_emociones_para_no_parecer_debil")),
+    dificultad_pedir_ayuda = any_of(c("x6_me_cuesta_pedir_ayuda_cuando_enfrento_una_dificultad")),
+    guarda_sentimientos  = any_of(c("x7_cuando_estoy_triste_o_dolido_prefiero_guardarmelo_para_mi")),
 
-    # Sección 2: Frecuencia en los últimos 7 días
-    sin_motivacion = `1. ¿Cuántas veces en los últimos 7 días, me he sentido sin motivación para realizar mis actividades?`,
-    preocupado = `2. ¿Cuántas veces en los últimos 7 días, me he sentido preocupado?`,
-    sin_proposito = `3. ¿Cuántas veces en los últimos 7 días, he sentido que la vida ha perdido su sentido y propósito?`,
-    no_reconocer_logros = `4. ¿Cuántas veces en los últimos 7 días, me ha costado reconocer mis logros y aspectos positivos?`,
-    incapaz_solucionar = `5. ¿Cuántas veces en los últimos 7 días, he pensado que soy incapaz de encontrar una solución a mis problemas?`,
-    intento_autolesion = `6. ¿Cuántas veces en los últimos 7 días, he intentado hacerme daño?`,
-    plan_autolesion = `7. ¿Cuántas veces en los últimos 7 días, he hecho planes para hacerme daño?`,
-    autolesion_fisica = `8. ¿Cuántas veces en los últimos 7 días, me he hecho daño físico de manera intencional (por ejemplo, cortarme, golpearme o provocarme dolor)?`,
-    conduccion_temeraria = `9. ¿Cuántas veces en los últimos 7 días, he conducido de manera arriesgada o sin cuidado por mi seguridad?`,
-    soledad = `10. ¿Cuántas veces en los últimos 7 días, me he sentido solo o sin apoyo?`,
-    conflicto_familiar = `11. ¿Cuántas veces en los últimos 7 días, he tenido conflictos o discusiones en mi familia?`,
-    dificultad_economica = `12. ¿Cuántas veces en los últimos 7 días, he tenido dificultades económicas que me preocupan?`,
-    exigencia_academica_laboral = `13. ¿Cuántas veces en los últimos 7 días, tuve muchas exigencias académicas o laborales`,
-    descontrol_drogas = `14. ¿Cuántas veces en los últimos 7 días, he sentido que pierdo el control al consumir algunas drogas?`,
-    abuso_alcohol = `15.  ¿Cuántas veces en los últimos 7 días, he abusado del consumo de bebidas alcohólicas?`,
-    descontrol_enojo = `16. ¿Cuántas veces en los últimos 7 días, cuando me enojo o me altero, siento que pierdo el control de mis reacciones?`,
+    # -------------------------------
+    # Sección 2 (últimos 7 días)
+    # -------------------------------
+    sin_motivacion = any_of(c("x1_cuantas_veces_en_los_ultimos_7_dias_me_he_sentido_sin_motivacion_para_realizar_mis_actividades")),
+    preocupado     = any_of(c("x2_cuantas_veces_en_los_ultimos_7_dias_me_he_sentido_preocupado")),
+    sin_proposito  = any_of(c("x3_cuantas_veces_en_los_ultimos_7_dias_he_sentido_que_la_vida_ha_perdido_su_sentido_y_proposito")),
+    no_reconocer_logros = any_of(c("x4_cuantas_veces_en_los_ultimos_7_dias_me_ha_costado_reconocer_mis_logros_y_aspectos_positivos")),
+    incapaz_solucionar  = any_of(c("x5_cuantas_veces_en_los_ultimos_7_dias_he_pensado_que_soy_incapaz_de_encontrar_una_solucion_a_mis_problemas")),
+    intento_autolesion  = any_of(c("x6_cuantas_veces_en_los_ultimos_7_dias_he_intentado_hacerme_dano")),
+    plan_autolesion     = any_of(c("x7_cuantas_veces_en_los_ultimos_7_dias_he_hecho_planes_para_hacerme_dano")),
+    autolesion_fisica   = any_of(c("x8_cuantas_veces_en_los_ultimos_7_dias_me_he_hecho_dano_fisico_de_manera_intencional_por_ejemplo_cortarme_golpearme_o_provocarme_dolor")),
+    conduccion_temeraria = any_of(c("x9_cuantas_veces_en_los_ultimos_7_dias_he_conducido_de_manera_arriesgada_o_sin_cuidado_por_mi_seguridad")),
+    soledad             = any_of(c("x10_cuantas_veces_en_los_ultimos_7_dias_me_he_sentido_solo_o_sin_apoyo")),
+    conflicto_familiar  = any_of(c("x11_cuantas_veces_en_los_ultimos_7_dias_he_tenido_conflictos_o_discusiones_en_mi_familia")),
+    dificultad_economica = any_of(c("x12_cuantas_veces_en_los_ultimos_7_dias_he_tenido_dificultades_economicas_que_me_preocupan")),
+    exigencia_academica_laboral = any_of(c("x13_cuantas_veces_en_los_ultimos_7_dias_tuve_muchas_exigencias_academicas_o_laborales")),
+    descontrol_drogas   = any_of(c("x14_cuantas_veces_en_los_ultimos_7_dias_he_sentido_que_pierdo_el_control_al_consumir_algunas_drogas")),
+    abuso_alcohol       = any_of(c("x15_cuantas_veces_en_los_ultimos_7_dias_he_abusado_del_consumo_de_bebidas_alcoholicas",
+                                   "x15_he_abusado_del_consumo_de_bebidas_alcoholicas")),
+    descontrol_enojo    = any_of(c("x16_cuantas_veces_en_los_ultimos_7_dias_cuando_me_enojo_o_me_altero_siento_que_pierdo_el_control_de_mis_reacciones")),
 
-    # Sección 3: Historial y situación actual (Sí/No)
-    medicamento_psiquiatrico = `1. Alguna vez en mi vida he tomado medicamentos psiquiátricos (ansiolíticos, antidepresivos, etc.)`,
-    discapacidad_fisica = `2. Tengo alguna discapacidad física (por ejemplo, pérdida de audición o amputación)`,
-    suicidio_familiar = `3. ¿Alguna persona de mi familia ha intentado quitarse la vida o se ha suicidado?`,
-    ruptura_reciente = `4. En el último mes, he pasado por una ruptura o separación de pareja que me ha impactado emocionalmente.`,
-    crisis_pareja_actual = `5. Actualmente estoy pasando por una crisis en mi relación de pareja.`,
-    medidas_cautelares = `6. Tengo vigentes medidas cautelares por violencia doméstica u otras razones legales.`,
+    # -------------------------------
+    # Sección 3 (Sí/No)
+    # -------------------------------
+    medicamento_psiquiatrico = any_of(c("x1_alguna_vez_en_mi_vida_he_tomado_medicamentos_psiquiatricos_ansioliticos_antidepresivos_etc")),
+    discapacidad_fisica      = any_of(c("x2_tengo_alguna_discapacidad_fisica_por_ejemplo_perdida_de_audicion_o_amputacion")),
+    suicidio_familiar        = any_of(c("x3_alguna_persona_de_mi_familia_ha_intentado_quitarse_la_vida_o_se_ha_suicidado")),
+    ruptura_reciente         = any_of(c("x4_en_el_ultimo_mes_he_pasado_por_una_ruptura_o_separacion_de_pareja_que_me_ha_impactado_emocionalmente")),
+    crisis_pareja_actual     = any_of(c("x5_actualmente_estoy_pasando_por_una_crisis_en_mi_relacion_de_pareja")),
+    medidas_cautelares       = any_of(c("x6_tengo_vigentes_medidas_cautelares_por_violencia_domestica_u_otras_razones_legales")),
 
-    # Sección 4: Ideación (Escala)
-    roberts_pensado_muerte = `1. Pensé en la muerte.`,
-    roberts_mejor_sin_mi = `2. Mi familia y mis amigos estarían mejor si yo estuviera muerto.`,
-    roberts_pensado_matarme = `3. Pensé en matarme.`,
-    roberts_plan_suicida = `4. Me mataría si encontrara o tuviera la manera de hacerlo.`,
+    # -------------------------------
+    # Sección 4 (Roberts)
+    # -------------------------------
+    roberts_pensado_muerte   = any_of(c("x1_pense_en_la_muerte")),
+    roberts_mejor_sin_mi     = any_of(c("x2_mi_familia_y_mis_amigos_estarian_mejor_si_yo_estuviera_muerto")),
+    roberts_pensado_matarme  = any_of(c("x3_pense_en_matarme")),
+    roberts_plan_suicida     = any_of(c("x4_me_mataria_si_encontrara_o_tuviera_la_manera_de_hacerlo")),
 
-    # Sección 5: Datos demográficos y de grupo
-    edad = `1. Edad (número de años cumplidos)`,
-    escolaridad = `2. Grado de escolaridad`,
-    estado_civil = `3. Estado civil`,
-    ocupacion = `4. Ocupación`,
-    orientacion_sexual = `5. Orientación sexual`,
-    provincia = `6. Provincia donde vive`,
-    canton = `7. Cantón donde vive`,
-    grupo_wem = `Grupo al que asiste de Wem`,
-    sesiones_cumplidas = `Cantidad de sesiones cumplidas (en número)`,
-    dia = `Día de la semana al que más asiste al grupo`
+    # -------------------------------
+    # Sección 5 (Demografía)
+    # -------------------------------
+    edad = any_of(c("x1_edad_numero_de_anos_cumplidos")),
+    escolaridad = any_of(c("x2_grado_de_escolaridad")),
+    estado_civil = any_of(c("x3_estado_civil")),
+    ocupacion = any_of(c("x4_ocupacion")),
+    orientacion_sexual = any_of(c("x5_orientacion_sexual")),
+    provincia = any_of(c("x6_provincia_donde_vive")),
+    canton = any_of(c("x7_canton_donde_vive")),
+    grupo_wem = any_of(c("grupo_al_que_asiste_de_wem", "grupo_al_que_asiste_de_wem_1", "grupo_al_que_asiste_de_wem_2")),
+    sesiones_cumplidas = any_of(c("cantidad_de_sesiones_cumplidas_en_numero")),
+    dia = any_of(c("dia_de_la_semana_al_que_mas_asiste_al_grupo"))
   )
+
 ```
 
 
@@ -348,6 +378,7 @@ write.csv(df_escalado, "../data/df_escalado.csv", row.names = FALSE)
 
 ```{r}
 saveRDS(df_final, "../data/df_final.rds")
+
 ```
 
 
